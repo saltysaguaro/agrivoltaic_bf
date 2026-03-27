@@ -25,98 +25,100 @@
   <body class="public-visualizer-body">
     <div class="public-visualizer-page">
       <aside class="public-visualizer-sidebar">
-        <header class="pv-hero">
-          <p class="pv-eyebrow">GitHub Pages Visualizer</p>
-          <h1>Quickly explore shade across standard 55 kW agrivoltaic systems.</h1>
-          <p class="pv-hero-copy">
-            Pick a location, choose a standard configuration, and scrub through the day and year to see how the sun path changes the three.js shade pattern.
-          </p>
-          <div class="pv-hero-badges">
-            <span>55 kW presets</span>
-            <span>Mapbox lookup</span>
-            <span>Solar-position driven</span>
-          </div>
-        </header>
-
-        <section class="pv-panel">
-          <div class="pv-panel-header">
+        <section class="pv-panel pv-panel--hero">
+          <div class="pv-panel-header pv-panel-header--tight">
             <div>
-              <p class="pv-eyebrow">Location</p>
-              <h2>Search for a site</h2>
+              <p class="pv-eyebrow">Agrivoltaic Shade Visualizer</p>
+              <h1>55 kW system shade preview</h1>
             </div>
           </div>
-          <label class="pv-label" for="siteSearchInput">Address or place name</label>
-          <div class="pv-search-shell">
-            <input
-              id="siteSearchInput"
-              class="pv-input"
-              type="text"
-              autocomplete="off"
-              placeholder="Start typing a farm, city, or street address"
-            />
-            <div id="siteSuggestions" class="pv-suggestion-list" role="listbox" aria-label="Location suggestions"></div>
-          </div>
-          <p id="siteLookupStatus" class="pv-support-copy">Waiting for Mapbox configuration.</p>
-          <div class="pv-site-chip">
-            <div>
-              <div id="selectedSiteLabel" class="pv-site-chip__title">Golden, Colorado</div>
-              <div id="selectedSiteMeta" class="pv-site-chip__meta">39.7555, -105.2211</div>
-            </div>
-            <span id="timezoneBadge" class="pv-badge">America/Denver</span>
-          </div>
+          <p class="pv-hero-copy">Location, system, date, and time. Everything else stays locked to the standard presets.</p>
         </section>
 
-        <section class="pv-panel">
-          <div class="pv-panel-header">
-            <div>
-              <p class="pv-eyebrow">Configuration</p>
-              <h2>Choose a standard system</h2>
+        <section class="pv-panel pv-panel--controls">
+          <div class="pv-control-block">
+            <div class="pv-panel-header pv-panel-header--tight">
+              <div>
+                <p class="pv-eyebrow">Location</p>
+                <h2>Site</h2>
+              </div>
+            </div>
+            <div class="pv-search-shell">
+              <input
+                id="siteSearchInput"
+                class="pv-input"
+                type="text"
+                autocomplete="off"
+                placeholder="Search address or place"
+              />
+              <div id="siteSuggestions" class="pv-suggestion-list" role="listbox" aria-label="Location suggestions"></div>
+            </div>
+            <p id="siteLookupStatus" class="pv-support-copy">Waiting for Mapbox configuration.</p>
+            <div class="pv-site-chip">
+              <div>
+                <div id="selectedSiteLabel" class="pv-site-chip__title">Golden, Colorado</div>
+                <div id="selectedSiteMeta" class="pv-site-chip__meta">39.7555, -105.2211</div>
+              </div>
+              <span id="timezoneBadge" class="pv-badge">America/Denver</span>
             </div>
           </div>
-          <div id="systemSelector" class="pv-system-grid" role="radiogroup" aria-label="System type"></div>
-        </section>
 
-        <section class="pv-panel">
-          <div class="pv-panel-header">
-            <div>
-              <p class="pv-eyebrow">Sun Controls</p>
-              <h2>Move through the year and the day</h2>
+          <div class="pv-control-block">
+            <div class="pv-panel-header pv-panel-header--tight">
+              <div>
+                <p class="pv-eyebrow">System</p>
+                <h2>Configuration</h2>
+              </div>
             </div>
+            <div id="systemSelector" class="pv-system-grid" role="radiogroup" aria-label="System type"></div>
           </div>
-          <div class="pv-field-grid">
-            <label class="pv-label" for="dateInput">Date</label>
-            <input id="dateInput" class="pv-input" type="date" />
-            <label class="pv-label" for="timeInput">Time</label>
-            <input id="timeInput" class="pv-input" type="time" step="900" />
-          </div>
-          <div class="pv-slider-shell">
-            <div class="pv-slider-copy">
-              <span>Time of day</span>
-              <strong id="timeDisplay">12:00 PM</strong>
-            </div>
-            <input id="timeSlider" class="pv-slider" type="range" min="0" max="1425" step="15" value="720" />
-            <div class="pv-slider-labels" aria-hidden="true">
-              <span>12a</span>
-              <span>6a</span>
-              <span>12p</span>
-              <span>6p</span>
-              <span>12a</span>
-            </div>
-          </div>
-          <p id="solarStatus" class="pv-support-copy">Select a location to compute the sun position.</p>
-        </section>
 
-        <section class="pv-panel">
-          <div class="pv-panel-header">
-            <div>
-              <p class="pv-eyebrow">Scene Summary</p>
-              <h2>Selected view details</h2>
+          <div class="pv-control-block">
+            <div class="pv-panel-header pv-panel-header--tight">
+              <div>
+                <p class="pv-eyebrow">Sun</p>
+                <h2>Date and time</h2>
+              </div>
             </div>
+            <div class="pv-inline-fields">
+              <div>
+                <label class="pv-label" for="dateInput">Date</label>
+                <input id="dateInput" class="pv-input" type="date" />
+              </div>
+              <div>
+                <label class="pv-label" for="timeInput">Time</label>
+                <input id="timeInput" class="pv-input" type="time" step="900" />
+              </div>
+            </div>
+            <div class="pv-slider-shell">
+              <div class="pv-slider-copy">
+                <span>Time</span>
+                <strong id="timeDisplay">10:00 AM</strong>
+              </div>
+              <input id="timeSlider" class="pv-slider" type="range" min="0" max="1425" step="15" value="600" />
+              <div class="pv-slider-labels" aria-hidden="true">
+                <span>12a</span>
+                <span>6a</span>
+                <span>12p</span>
+                <span>6p</span>
+                <span>12a</span>
+              </div>
+            </div>
+            <p id="solarStatus" class="pv-support-copy">Select a location to compute the sun position.</p>
           </div>
-          <div id="summaryCards" class="pv-summary-grid"></div>
-          <p id="summaryNote" class="pv-note-copy">
-            These scenes are built from the same conceptual geometry used in the main visualizer.
-          </p>
+
+          <div class="pv-control-block pv-control-block--summary">
+            <div class="pv-panel-header pv-panel-header--tight">
+              <div>
+                <p class="pv-eyebrow">Summary</p>
+                <h2>Scene</h2>
+              </div>
+            </div>
+            <div id="summaryCards" class="pv-summary-grid"></div>
+            <p id="summaryNote" class="pv-note-copy">
+              These scenes are built from the same conceptual geometry used in the main visualizer.
+            </p>
+          </div>
         </section>
       </aside>
 
@@ -130,7 +132,7 @@
             <button class="pv-ghost-button" type="button" data-view-preset="rowOblique">Row View</button>
             <button class="pv-ghost-button" type="button" data-view-preset="arrayOblique">Array View</button>
             <button id="copyLinkButton" class="pv-ghost-button" type="button">Copy Link</button>
-            <button id="snapshotButton" class="pv-primary-button" type="button">Save PNG</button>
+            <button id="snapshotButton" class="pv-primary-button" type="button">PNG</button>
           </div>
         </div>
 

@@ -1,39 +1,162 @@
 # Agrivoltaic Visualizer
 
-Agrivoltaic Visualizer is a local-first design and analysis workspace for agrivoltaic PV layouts. The repository combines a browser-based three.js configurator, a local simulation backend, shared export utilities, and a lightweight GitHub Pages shade visualizer built from the same geometry presets.
+Agrivoltaic Visualizer is a local-first agrivoltaic modeling and visualization platform for exploring photovoltaic system layouts, crop-space relationships, and annual irradiance conditions. The browser application uses a shared three.js scene as the geometry source of truth, while the backend packages that geometry for sensor inference, weather acquisition, Radiance-based export, and annual simulation workflows.
 
-## What is in this repo
+The project is organized around a practical agrivoltaic workflow:
 
-- Local application pages for site setup, system design, sensor selection, run monitoring, and results review
-- Shared packages for schemas, math, export packaging, and backend utilities
-- A public-facing shade visualizer for GitHub Pages that exposes only location, system type, date, and time
-- A local annual-model workflow that exports geometry from the three.js scene and runs irradiance studies through `bifacial_radiance`
+- choose a site
+- build a conceptual 3D array layout
+- define sensor coverage
+- run an annual irradiance study
+- review seasonal and height-slice results in the browser
 
-## Main entry points
+## Core capabilities
 
-- `index.html`: landing page for local project setup and site selection
-- `design.html`: interactive system designer
-- `sensor-layout.html`: sensor selection workspace
-- `model-run.html`: job status page
-- `results.html`: annual results explorer
-- `public-visualizer.html`: standalone public shade visualizer source
-- `docs/`: generated GitHub Pages output for the public visualizer
+### 3D agrivoltaic layout design
+
+The design interface provides a realtime three.js configurator for agrivoltaic PV layouts. The scene updates immediately as layout parameters change, and the same geometry is reused downstream for export and analysis.
+
+Supported system archetypes:
+
+- fixed tilt
+- single-axis tracker
+- raised / pergola
+- vertical bifacial
+
+Key design inputs include:
+
+- DC system size
+- table configuration
+- module dimensions
+- tilt or tracker angle
+- array azimuth
+- height / clearance
+- row spacing
+- row-column grouping
+- crop row buffers and edge buffers
+
+### Crop-space and ground relationship modeling
+
+The scene is built for agrivoltaic interpretation rather than PV geometry alone. The app tracks:
+
+- array footprint
+- inter-row openings
+- crop-row width
+- crop-bed placement
+- edge and planting buffers
+
+This makes it possible to compare how different mounting styles change the available plantable corridor beneath or between PV rows.
+
+### Sensor selection and export preparation
+
+After the design stage, the app opens a sensor-layout workflow that can infer sampling volumes from the current scene. This supports:
+
+- representative center-array sampling
+- central-row sampling
+- full-array repeated sampling across adjacent row pairs
+
+The export pipeline packages scene geometry, materials, sensor definitions, and metadata for local or portable analysis workflows.
+
+### Annual irradiance modeling
+
+The local backend supports annual irradiance studies driven by real geometry and weather inputs. The user-facing annual workflow is built around:
+
+- site selection and geocoding
+- weather acquisition
+- sensor-grid generation
+- export of Radiance-ready geometry
+- `bifacial_radiance`-based annual simulation
+- storage of job artifacts and result datasets
+
+The current implementation is designed for local execution on a workstation with Python and Radiance installed.
+
+### Results review
+
+The results interface is designed for agrivoltaic interpretation rather than raw file inspection. It supports:
+
+- annual totals
+- wrapped seasonal month ranges
+- height slices
+- edge versus interior comparisons
+- irradiance, shade-fraction, and related derived views
+
+## Application flow
+
+### Landing page
+
+The landing page is the local project entry point. It handles:
+
+- project folder selection
+- project snapshot loading
+- site selection
+- Mapbox-backed address lookup
+
+### Design page
+
+The design page is the main three.js configurator. It is used to:
+
+- select the system archetype
+- edit layout geometry
+- review computed summary metrics
+- save the current design state
+- launch the sensor layout or modeling workflow
+
+### Sensor layout page
+
+The sensor layout page derives analysis coverage from the current scene geometry and prepares the study configuration used for annual jobs.
+
+### Run page
+
+The run page tracks asynchronous annual job progress, logs, and backend execution state.
+
+### Results page
+
+The results page visualizes completed annual datasets and supports comparison across months, heights, and sensor groupings.
+
+## Architecture
+
+### Frontend
+
+The frontend is a multi-page browser application built directly from HTML, CSS, and ES modules.
+
+Important frontend areas:
+
+- `src/app/`: state, events, and mount logic for the designer
+- `src/scene/`: shared three.js scene, camera, lighting, controls, and rendering
+- `src/systems/`: system archetypes and assembly logic
+- `src/ground/`: ground grid and heatmap overlays
+- `src/crops/`: crop-space and planting geometry
+- `src/platform/`: page controllers, session helpers, routing, and browser-side platform logic
+
+### Shared packages
+
+`packages/shared/` contains common schemas, constants, math helpers, and platform contracts used by both the frontend and backend.
+
+`packages/three-exporter/` contains scene export, tagging, selection, metadata, and result-import helpers.
+
+### Backend
+
+`packages/simulation-backend/` provides:
+
+- the local Express server
+- project storage
+- site lookup integration
+- annual job orchestration
+- weather acquisition
+- Radiance export assembly
+- sensor inference
+- result parsing and aggregation
 
 ## Repository layout
 
 ```text
 .
+├── index.html
+├── design.html
+├── sensor-layout.html
+├── model-run.html
+├── results.html
 ├── public-visualizer.html
-├── public-visualizer.css
-├── public-visualizer.config.js
-├── docs/
-├── packages/
-│   ├── shared/
-│   ├── simulation-backend/
-│   ├── three-exporter/
-│   └── examples/
-├── scripts/
-│   └── build-public-pages.mjs
 ├── src/
 │   ├── app/
 │   ├── crops/
@@ -44,26 +167,48 @@ Agrivoltaic Visualizer is a local-first design and analysis workspace for agrivo
 │   ├── systems/
 │   ├── ui/
 │   └── utils/
-└── tests/
+├── packages/
+│   ├── shared/
+│   ├── simulation-backend/
+│   ├── three-exporter/
+│   └── examples/
+├── scripts/
+├── tests/
+└── docs/
 ```
 
 ## Requirements
 
+The local annual-modeling workflow depends on:
+
 - Node.js 20 or newer
 - `pnpm` 10
-- Python environment with `bifacial_radiance` and `pvlib` for annual modeling
-- Radiance CLI tools on `PATH` for annual modeling and export workflows
-- Optional Mapbox public token for the GitHub Pages visualizer
-- Optional Mapbox token and NSRDB credentials for local site lookup and annual weather acquisition
+- Python with `bifacial_radiance` and `pvlib`
+- Radiance CLI tools on `PATH`
 
-## Local development
+Optional integrations:
 
-Install dependencies and build the workspace:
+- Mapbox token for site autocomplete
+- NSRDB credentials for weather retrieval
+
+## Local setup
+
+Install JavaScript dependencies and build the workspace:
 
 ```bash
 corepack enable
 corepack pnpm install
 corepack pnpm build
+```
+
+Set the runtime environment as needed:
+
+```bash
+export MAPBOX_ACCESS_TOKEN="your_mapbox_token_here"
+export NSRDB_API_KEY="your_nrel_api_key_here"
+export NSRDB_EMAIL="your_email@example.com"
+export AGRIVOLTAIC_PYTHON="/path/to/python"
+export AGRIVOLTAIC_RADIANCE_BIN_DIR="/path/to/Radiance/bin"
 ```
 
 Start the local backend:
@@ -72,136 +217,45 @@ Start the local backend:
 corepack pnpm start:backend
 ```
 
-The local app is served from:
+Then open:
 
 - [http://localhost:8787](http://localhost:8787)
 
-The local pages rely on the backend for routing, project storage, site lookup, and annual jobs. Open them through the backend at `http://localhost:8787`.
+## Runtime and data notes
 
-## Public shade visualizer
-
-The public visualizer is a static page that reuses the existing 55 kW system presets and scene code. It lives in:
-
-- `public-visualizer.html`
-- `public-visualizer.css`
-- `public-visualizer.config.js`
-- `src/public/`
-
-The page computes sun azimuth and elevation from:
-
-- Mapbox-selected location
-- selected date
-- selected time
-- site timezone or longitude-based fallback
-
-### Configure the public Mapbox token
-
-Add a restricted public token to:
-
-- `public-visualizer.config.js`
-
-Use a `pk.` token restricted to your GitHub Pages domain and local preview domains.
-
-### Generate GitHub Pages output
-
-```bash
-corepack pnpm build:pages
-```
-
-That command regenerates:
-
-- `docs/index.html`
-- `docs/public-visualizer.css`
-- `docs/public-visualizer.config.js`
-- `docs/src/*`
-
-`docs/` is the publish target for GitHub Pages.
-
-### Publish on GitHub Pages
-
-1. Commit the repository, including the generated `docs/` directory.
-2. Push the branch to GitHub.
-3. In the repository settings, open `Pages`.
-4. Choose `Deploy from a branch`.
-5. Select the default branch and the `/docs` folder.
-
-If the repository name is `username.github.io`, the site will publish at the root domain. Otherwise it will publish at `https://username.github.io/<repo-name>/`.
-
-## Environment variables
-
-Runtime configuration is read from the shell environment or a local `.env` file. The template is:
-
-- `.env.example`
-
-Common variables:
-
-- `MAPBOX_ACCESS_TOKEN`: enables local site autocomplete and backend-backed site resolution
-- `NSRDB_API_KEY`: enables NSRDB weather retrieval
-- `NSRDB_EMAIL`: contact email for NSRDB requests
-- `AGRIVOLTAIC_PYTHON`: Python interpreter used for annual modeling
-- `AGRIVOLTAIC_RADIANCE_BIN_DIR`: preferred Radiance `bin` directory
-- `AGRIVOLTAIC_ENGINE`: annual engine selection override
-
-## Workspace packages
-
-### `packages/shared`
-
-Shared types, constants, schemas, and math utilities used across the frontend and backend.
-
-### `packages/three-exporter`
-
-Geometry export, metadata, object tagging, sensor request helpers, and browser-facing result utilities.
-
-### `packages/simulation-backend`
-
-Express server, project storage, site lookup, annual job orchestration, weather retrieval, Radiance pipeline assembly, and result parsing.
-
-### `packages/examples`
-
-Small example entry points for exporter and package workflows.
+- The browser app relies on the backend for project storage, routing, site lookup, and annual jobs.
+- Local job outputs are written under `local-data/jobs/<jobId>/`.
+- `local-data/` is ignored by Git and is intended for local study artifacts only.
+- The backend stores job metadata, requests, weather data, logs, and result files for each run.
 
 ## Useful scripts
 
-- `corepack pnpm build`: builds workspace packages and regenerates the GitHub Pages output
-- `corepack pnpm build:pages`: regenerates only the GitHub Pages output
-- `corepack pnpm lint`: runs TypeScript checking
-- `corepack pnpm test`: runs the test suite
-- `corepack pnpm dev:backend`: runs the backend from source with `tsx`
-- `corepack pnpm start:backend`: runs the built backend
-
-## Annual modeling notes
-
-The annual workflow uses the three.js scene as the geometry source of truth and runs the user-facing engine through `bifacial_radiance`. Annual job artifacts are written under:
-
-- `local-data/jobs/<jobId>/`
-
-That directory is ignored by Git and is intended for local study outputs, logs, and imported result packages.
+- `corepack pnpm build`: build all workspace packages and regenerate the static public-page output
+- `corepack pnpm build:pages`: regenerate the static public-page output only
+- `corepack pnpm lint`: run TypeScript checks
+- `corepack pnpm test`: run the automated test suite
+- `corepack pnpm dev:backend`: start the backend from source with `tsx`
+- `corepack pnpm start:backend`: start the built backend
 
 ## Tests
 
 The test suite covers:
 
-- annual job and results logic
-- month-range handling
-- sensor layout inference
-- Mapbox site normalization
-- server security and routing behavior
-- project persistence and imports
+- annual job creation and result handling
+- sensor-grid inference
+- Mapbox normalization and lookup helpers
+- material and export validation
+- month-range expansion and annual metrics
+- project persistence
+- results import
+- routing and security behavior
 - public solar-position calculations
 
-Run:
+## Notes for publishing the repository
 
-```bash
-corepack pnpm lint
-corepack pnpm test
-```
-
-## Notes for a new GitHub repository
-
-- `docs/` is generated content for GitHub Pages and is expected to be committed
-- `local-data/`, `node_modules/`, `.env`, and local logs are ignored
-- `public-visualizer.config.js` ships with an empty token placeholder
-- Package `dist/` directories are part of the browser/runtime flow after a build
+- `docs/` contains generated static assets used by the public visualizer
+- `public-visualizer.config.js` is a browser-side config file, not a secret store
+- `node_modules/`, `.env`, `local-data/`, and local logs are ignored
 
 ## Open repository decision
 

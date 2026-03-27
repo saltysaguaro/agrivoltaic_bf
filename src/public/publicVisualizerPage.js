@@ -14,11 +14,14 @@ import {
 import { mountPublicSiteLookup, normalizeConfiguredSite } from "./publicMapbox.js";
 
 const SYSTEM_DESCRIPTIONS = {
-  fixed: "South-facing fixed rows with the standard 55 kW layout preset.",
-  sat: "Single-axis tracker rows using the standard 55 kW tracker preset.",
-  raised: "Raised pergola canopy at the standard 55 kW agrivoltaic preset.",
-  vertical: "Vertical bifacial fence-style rows using the standard 55 kW preset.",
+  fixed: "Fixed tilt",
+  sat: "Tracker",
+  raised: "Raised canopy",
+  vertical: "Vertical bifacial",
 };
+
+const DEFAULT_MONTH_DAY = "06-21";
+const DEFAULT_MINUTES_IN_DAY = 10 * 60;
 
 function queryElements() {
   return {
@@ -88,6 +91,7 @@ function stateFromQuery(defaultSite) {
   // Shared links restore the last chosen site, system, date, time, and camera preset.
   const timeZone = resolveSiteTimeZone(querySite);
   const nowParts = getCurrentZonedDateTime(timeZone);
+  const defaultYear = String(nowParts.dateInput).slice(0, 4) || String(new Date().getFullYear());
   const timeValue = params.get("time");
 
   return {
@@ -97,8 +101,8 @@ function stateFromQuery(defaultSite) {
       timezoneApproximate: Boolean(querySite.timezoneApproximate),
     },
     systemType: validSystemType(params.get("system")) ? params.get("system") : DEFAULTS.systemType,
-    dateInput: params.get("date") || nowParts.dateInput,
-    minutesInDay: timeValue ? parseTimeInput(timeValue) : nowParts.minutesInDay,
+    dateInput: params.get("date") || `${defaultYear}-${DEFAULT_MONTH_DAY}`,
+    minutesInDay: timeValue ? parseTimeInput(timeValue) : DEFAULT_MINUTES_IN_DAY,
     viewPreset: params.get("view") || "arrayOblique",
   };
 }
@@ -174,43 +178,41 @@ function renderSummary(elements, {
   // Summary cards mirror the public controls and scene state without exposing the full local app settings.
   const cards = [
     {
-      label: "Location",
+      label: "Site",
       value: site.label,
-      meta: `${site.latitude.toFixed(4)}, ${site.longitude.toFixed(4)} • ${site.timezone}${site.timezoneApproximate ? " (estimated)" : ""}`,
+      meta: `${site.latitude.toFixed(2)}, ${site.longitude.toFixed(2)}`,
     },
     {
-      label: "Local Time",
+      label: "Time",
       value: solar.localDateTimeLabel,
-      meta: `Selected time interpreted in ${solar.timeZoneOffsetLabel}`,
+      meta: `${solar.timeZone} • ${solar.timeZoneOffsetLabel}`,
     },
     {
-      label: "Sun Position",
+      label: "Sun",
       value: `${roundTo(solar.azimuthDeg, 1).toFixed(1)}° az • ${roundTo(solar.apparentElevationDeg, 1).toFixed(1)}° el`,
-      meta: solar.isDaylight
-        ? (solar.isGoldenHour ? "Sun is low in the sky, so shadows are stretched." : "Daylight conditions are producing direct scene shadows.")
-        : "The sun is below the horizon at this time.",
+      meta: solar.isDaylight ? "Daylight" : "Below horizon",
     },
     {
       label: "System",
       value: systemLabel,
-      meta: "Standard 55 kW configuration pulled from the main app presets.",
+      meta: "55 kW preset",
     },
     {
-      label: "Modules",
+      label: "Array",
       value: sceneSummary.moduleCount.toLocaleString(),
-      meta: `${sceneSummary.tablesNeeded.toLocaleString()} tables • ${sceneSummary.rowCount.toLocaleString()} rows`,
+      meta: `${sceneSummary.rowCount.toLocaleString()} rows • ${sceneSummary.tablesNeeded.toLocaleString()} tables`,
     },
     {
       label: "Footprint",
       value: formatDimensions(sceneSummary.arrayW, sceneSummary.arrayD, sceneState),
-      meta: `Row pitch ${formatLength(sceneSummary.rowPitch, sceneState, { decimalsMetric: 1, decimalsImperial: 1 })}`,
+      meta: `Pitch ${formatLength(sceneSummary.rowPitch, sceneState, { decimalsMetric: 1, decimalsImperial: 1 })}`,
     },
   ];
 
   elements.summaryCards.replaceChildren(...cards.map(buildSummaryCard));
   elements.summaryNote.textContent = solar.isDaylight
-    ? sceneSummary.note
-    : "Nighttime or pre-dawn selections dim the direct sun so you can see when the array is out of daylight.";
+    ? "Direct shadows are active."
+    : "Direct sun is off below the horizon.";
 }
 
 async function bootPublicVisualizer() {
@@ -245,7 +247,7 @@ async function bootPublicVisualizer() {
     elements.sceneHeading.textContent = `${systemLabel} shade preview`;
     elements.overlayTitle.textContent = `${state.site.label} • ${systemLabel}`;
     elements.overlayBody.textContent = solar
-      ? `${solar.localDateTimeLabel} • Sun ${roundTo(solar.azimuthDeg, 1).toFixed(1)}° az / ${roundTo(solar.apparentElevationDeg, 1).toFixed(1)}° el • Orbit: drag • Zoom: scroll • Pan: right-drag`
+      ? `${solar.localDateTimeLabel} • ${roundTo(solar.azimuthDeg, 1).toFixed(1)}° az / ${roundTo(solar.apparentElevationDeg, 1).toFixed(1)}° el`
       : "Orbit: drag • Zoom: scroll • Pan: right-drag";
   }
 
@@ -284,8 +286,8 @@ async function bootPublicVisualizer() {
     renderViewButtons(elements.viewButtons, state.viewPreset);
 
     elements.solarStatus.textContent = solar.isDaylight
-      ? `${solar.localDateTimeLabel} • direct shade preview is active.`
-      : `${solar.localDateTimeLabel} • the sun is below the horizon at this site.`;
+      ? `${solar.localDateTimeLabel} • direct shade is active.`
+      : `${solar.localDateTimeLabel} • sun below horizon.`;
   }
 
   function selectSystemType(systemType) {
