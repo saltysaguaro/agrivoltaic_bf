@@ -153,7 +153,7 @@ async function bootPublicVisualizer() {
       : "Orbit: drag • Zoom: scroll • Pan: right-drag";
   }
 
-  function rebuildScene({ resetView = false } = {}) {
+  function rebuildScene({ applyViewPreset = false } = {}) {
     solar = computeSolarPosition({
       latitude: state.site.latitude,
       longitude: state.site.longitude,
@@ -170,11 +170,10 @@ async function bootPublicVisualizer() {
     );
     sceneSummary = sceneApp.rebuildSystem(sceneState);
     sceneApp.updateLighting(sceneState);
-    if (resetView) {
-      state.viewPreset = "arrayOblique";
-    }
     sceneApp.resize();
-    sceneApp.setViewPreset(sceneState, state.viewPreset);
+    if (applyViewPreset) {
+      sceneApp.setViewPreset(sceneState, state.viewPreset);
+    }
 
     updateOverlay();
     syncUrl(state);
@@ -271,7 +270,7 @@ async function bootPublicVisualizer() {
   });
   viewportObserver.observe(elements.canvasWrap);
 
-  rebuildScene();
+  rebuildScene({ applyViewPreset: true });
 }
 
 void bootPublicVisualizer();
