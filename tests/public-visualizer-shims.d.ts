@@ -34,3 +34,31 @@ declare module "../src/public/solarPosition.js" {
     offsetMinutes: number;
   };
 }
+
+declare module "../src/public/publicVisualizerState.js" {
+  export function stateFromQuery(defaultSite: {
+    label: string;
+    fullAddress: string;
+    latitude: number;
+    longitude: number;
+    timezone?: string;
+    timezoneApproximate?: boolean;
+    region?: string;
+    regionCode?: string;
+    country?: string;
+    countryCode?: string;
+  }, locationSearch?: string): {
+    site: {
+      label: string;
+      fullAddress: string;
+      latitude: number;
+      longitude: number;
+      timezone: string;
+      timezoneApproximate: boolean;
+    };
+    systemType: string;
+    dateInput: string;
+    minutesInDay: number;
+    viewPreset: string;
+  };
+}

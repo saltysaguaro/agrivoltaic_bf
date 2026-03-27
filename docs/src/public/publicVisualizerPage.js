@@ -5,12 +5,11 @@ import {
   computeSolarPosition,
   formatTimeInput,
   formatTimeLabel,
-  getCurrentZonedDateTime,
-  parseTimeInput,
   resolveSiteTimeZone,
   roundMinutes,
 } from "./solarPosition.js";
 import { mountPublicSiteLookup, normalizeConfiguredSite } from "./publicMapbox.js";
+import { stateFromQuery } from "./publicVisualizerState.js";
 
 const SYSTEM_DESCRIPTIONS = {
   fixed: "Fixed tilt",
@@ -18,10 +17,6 @@ const SYSTEM_DESCRIPTIONS = {
   raised: "Raised canopy",
   vertical: "Vertical bifacial",
 };
-
-const DEFAULT_SYSTEM_TYPE = "fixed";
-const DEFAULT_MONTH_DAY = "06-21";
-const DEFAULT_MINUTES_IN_DAY = 10 * 60;
 
 function queryElements() {
   return {
@@ -44,45 +39,6 @@ function queryElements() {
     snapshotButton: document.getElementById("snapshotButton"),
     copyLinkButton: document.getElementById("copyLinkButton"),
     viewButtons: [...document.querySelectorAll("[data-view-preset]")],
-  };
-}
-
-function validSystemType(value) {
-  return SYSTEM_TYPE_OPTIONS.some((option) => option.value === value);
-}
-
-function stateFromQuery(defaultSite) {
-  const params = new URLSearchParams(window.location.search);
-  const latitude = Number(params.get("lat"));
-  const longitude = Number(params.get("lng"));
-  const hasValidCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
-  const querySite = hasValidCoordinates
-    ? {
-      label: params.get("label") || defaultSite.label,
-      fullAddress: params.get("label") || defaultSite.fullAddress,
-      latitude,
-      longitude,
-      timezone: params.get("tz") || defaultSite.timezone,
-      timezoneApproximate: !params.get("tz"),
-    }
-    : defaultSite;
-
-  // Shared links restore the last chosen site, system, date, time, and camera preset.
-  const timeZone = resolveSiteTimeZone(querySite);
-  const nowParts = getCurrentZonedDateTime(timeZone);
-  const defaultYear = String(nowParts.dateInput).slice(0, 4) || String(new Date().getFullYear());
-  const timeValue = params.get("time");
-
-  return {
-    site: {
-      ...querySite,
-      timezone: timeZone,
-      timezoneApproximate: Boolean(querySite.timezoneApproximate),
-    },
-    systemType: validSystemType(params.get("system")) ? params.get("system") : DEFAULT_SYSTEM_TYPE,
-    dateInput: params.get("date") || `${defaultYear}-${DEFAULT_MONTH_DAY}`,
-    minutesInDay: timeValue ? parseTimeInput(timeValue) : DEFAULT_MINUTES_IN_DAY,
-    viewPreset: params.get("view") || "arrayOblique",
   };
 }
 
