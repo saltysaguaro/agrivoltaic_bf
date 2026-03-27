@@ -1,6 +1,6 @@
 window.AGRIVOLTAIC_PUBLIC_CONFIG = {
   // Public GitHub Pages builds use a browser-safe Mapbox `pk.` token here.
-  mapboxToken: "pk.eyJ1Ijoic2FsdHlzYWd1YXJvIiwiYSI6ImNtbjhjdjduczBhZnoycm9kNjB3eWN4cGcifQ.Hu7fpbfvc_YBb-JgQ1P4xw",
+  mapboxToken: "",
   defaultSite: {
     // The default site keeps the public page usable before a search is made.
     label: "Golden, Colorado",
