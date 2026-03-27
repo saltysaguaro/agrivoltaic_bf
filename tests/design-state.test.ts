@@ -36,7 +36,7 @@ test("pergola tracking toggles convert azimuth between surface and row-axis conv
   assert.equal(store.getState().systemAzimuthDeg, 210);
 });
 
-test("pergola crop rows use the full row pitch minus crop-row edge setbacks", () => {
+test("pergola crop rows stay within the canopy footprint and use one planting line per row", () => {
   const state = sanitizeState({
     ...SYSTEM_PRESETS.raised,
     systemType: "raised",
@@ -49,12 +49,12 @@ test("pergola crop rows use the full row pitch minus crop-row edge setbacks", ()
   assert.equal(layout.cropRows.length, layout.rowCount);
   assert.equal(
     Number(layout.cropRows[0]!.width.toFixed(6)),
-    Number((state.rowSpacing - (state.cropRowBuffer * 2)).toFixed(6)),
+    Number((layout.crossAxisFootprint - (state.cropRowBuffer * 2)).toFixed(6)),
   );
-  assert.ok(layout.cropRows[0]!.width > layout.crossAxisFootprint);
+  assert.equal(layout.cropRows[0]!.bedCountOverride, 1);
 });
 
-test("pergola canopy rows can tighten without shrinking crop-row bands", () => {
+test("pergola crop rows align directly beneath the canopy rows", () => {
   const state = sanitizeState({
     ...SYSTEM_PRESETS.raised,
     systemType: "raised",
@@ -66,14 +66,12 @@ test("pergola canopy rows can tighten without shrinking crop-row bands", () => {
   const rowCenters = Array.from(
     new Set<number>(layout.anchors.map((anchor: { z: number }) => Number(anchor.z.toFixed(6)))),
   ).sort((a: number, b: number) => a - b);
+  const cropCenters = layout.cropRows.map((cropRow: { centerZ: number }) => Number(cropRow.centerZ.toFixed(6)));
 
   assert.equal(SYSTEM_PRESETS.raised.pergolaCheckerboard, true);
   assert.ok(rowCenters.length > 1);
-  assert.ok(rowCenters[1]! - rowCenters[0]! < state.rowSpacing);
-  assert.equal(
-    Number(layout.cropRows[0]!.width.toFixed(6)),
-    Number((state.rowSpacing - (state.cropRowBuffer * 2)).toFixed(6)),
-  );
+  assert.deepEqual(cropCenters, rowCenters);
+  assert.ok(layout.arrayD < state.rowSpacing * layout.rowCount);
 });
 
 test("public pergola preset lays out the 55 kW canopy as 10 rows of 10 modules", () => {

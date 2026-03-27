@@ -96,13 +96,8 @@ export function computeArrayLayout(state, archetype) {
   const rowDepthByColumn = rowsPerColumn.map((count) => {
     return crossAxisFootprint + Math.max(0, count - 1) * structuralRowPitch;
   });
-  const cropDepthByColumn = rowsPerColumn.map((count) => {
-    return archetype.id === "raised"
-      ? crossAxisFootprint + Math.max(0, count - 1) * rowPitch
-      : crossAxisFootprint + Math.max(0, count - 1) * structuralRowPitch;
-  });
   const maxColumnDepth = rowDepthByColumn.length
-    ? Math.max(...rowDepthByColumn, ...cropDepthByColumn)
+    ? Math.max(...rowDepthByColumn)
     : crossAxisFootprint;
   const rowReferenceMode = archetype.crossAxisAnchorMode || "leading-edge";
 
@@ -126,16 +121,11 @@ export function computeArrayLayout(state, archetype) {
 
   rowsPerColumn.forEach((rowsInColumn, columnIndex) => {
     const columnDepth = rowDepthByColumn[columnIndex];
-    const cropDepth = cropDepthByColumn[columnIndex];
     const depthOffset = (maxColumnDepth - columnDepth) / 2;
-    const cropDepthOffset = (maxColumnDepth - cropDepth) / 2;
     const arrayId = `array-${String(columnIndex + 1).padStart(2, "0")}`;
     const rowStart = rowReferenceMode === "center"
       ? (-maxColumnDepth / 2) + depthOffset + (crossAxisFootprint / 2)
       : (-maxColumnDepth / 2) + depthOffset;
-    const cropRowStart = rowReferenceMode === "center"
-      ? (-maxColumnDepth / 2) + cropDepthOffset + (crossAxisFootprint / 2)
-      : (-maxColumnDepth / 2) + cropDepthOffset;
 
     rowColumnLayouts.push({
       arrayId,
@@ -143,13 +133,9 @@ export function computeArrayLayout(state, archetype) {
       rowsInColumn,
       centerOffset: columnCenters[columnIndex],
       depthOffset,
-      cropDepthOffset,
       rowStart,
-      cropRowStart,
       depth: columnDepth,
-      cropDepth,
       structuralRowPitch,
-      cropRowPitch: rowPitch,
     });
 
     for (let rowIndexInColumn = 0; rowIndexInColumn < rowsInColumn; rowIndexInColumn++) {
@@ -182,7 +168,7 @@ export function computeArrayLayout(state, archetype) {
     arrayD,
     rowCount,
     rowColumnCount,
-    rowPitch: archetype.id === "raised" ? rowPitch : structuralRowPitch,
+    rowPitch: structuralRowPitch,
     crossAxisFootprint,
     archetype,
     state,
@@ -199,7 +185,7 @@ export function computeArrayLayout(state, archetype) {
     tablesNeeded,
     tablesPerRow: tablesPerRowEffective,
     rowCount,
-    rowPitch,
+    rowPitch: structuralRowPitch,
     tableSpan,
     crossAxisFootprint,
     arrayW,
@@ -315,10 +301,10 @@ function computePergolaCropRows({
   rowCount,
   rowPitch,
   crossAxisFootprint,
-  state,
   rowColumnLayouts,
   spanAlongRow,
   isTrackerOrientation,
+  state,
 }) {
   if (rowCount < 1) return [];
 
@@ -327,9 +313,10 @@ function computePergolaCropRows({
 
   for (const columnLayout of rowColumnLayouts) {
     for (let rowIndex = 0; rowIndex < columnLayout.rowsInColumn; rowIndex++) {
-      const rowCenter = (columnLayout.cropRowStart ?? columnLayout.rowStart) + rowIndex * rowPitch;
-      const southEdge = rowCenter - (rowPitch / 2);
-      const northEdge = rowCenter + (rowPitch / 2);
+      const structuralPitch = columnLayout.structuralRowPitch ?? rowPitch;
+      const rowCenter = columnLayout.rowStart + rowIndex * structuralPitch;
+      const southEdge = rowCenter - (crossAxisFootprint / 2);
+      const northEdge = rowCenter + (crossAxisFootprint / 2);
       const plantableStart = southEdge + state.cropRowBuffer;
       const plantableEnd = northEdge - state.cropRowBuffer;
       const width = Math.max(0, plantableEnd - plantableStart);
@@ -351,7 +338,8 @@ function computePergolaCropRows({
         alongLength: spanAlongRow,
         alongStart: columnLayout.centerOffset - (spanAlongRow / 2),
         alongEnd: columnLayout.centerOffset + (spanAlongRow / 2),
-        bedCenters: computeBedCenters(plantableStart, plantableEnd, state.cropBedsPerRow),
+        bedCountOverride: 1,
+        bedCenters: computeBedCenters(plantableStart, plantableEnd, 1),
       });
     }
   }

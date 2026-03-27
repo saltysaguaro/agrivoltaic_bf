@@ -19,7 +19,7 @@ export function createSummaryPanel(gridEl, noteEl, getContext = () => ({})) {
       ? formatLength(sceneSummary.cropSummary.cropRowWidth, state, { decimalsMetric: 2, decimalsImperial: 1 })
       : "Not available";
     const cropWidthDetail = sceneSummary.cropSummary.mode === "under-canopy"
-      ? `Full row pitch ${formatLength(state.rowSpacing, state, { decimalsMetric: 2, decimalsImperial: 1 })} minus ${formatLength(state.cropRowBuffer * 2, state, { decimalsMetric: 2, decimalsImperial: 1 })} edge setbacks`
+      ? `Canopy strip ${formatLength(sceneSummary.rowPitch, state, { decimalsMetric: 2, decimalsImperial: 1 })} minus ${formatLength(state.cropRowBuffer * 2, state, { decimalsMetric: 2, decimalsImperial: 1 })} edge setbacks`
       : sceneSummary.cropSummary.interRowGap > 0
         ? `Open gap ${formatLength(sceneSummary.cropSummary.interRowGap, state, { decimalsMetric: 2, decimalsImperial: 1 })} minus ${formatLength(state.cropRowBuffer * 2, state, { decimalsMetric: 2, decimalsImperial: 1 })} buffers`
         : "No inter-row crop corridor available";

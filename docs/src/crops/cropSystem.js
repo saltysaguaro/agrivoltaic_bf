@@ -157,11 +157,12 @@ export class CropSystem {
 
     const cropRows = sceneSummary?.layout?.cropRows || [];
     const crop = CROP_LIBRARY[state.cropType] || CROP_LIBRARY.tomato;
+    const requestedBedsPerRow = cropRows[0]?.bedCountOverride ?? state.cropBedsPerRow;
     const cropSummary = {
       cropRowWidth: 0,
       interRowGap: 0,
       cropRowsAvailable: 0,
-      cropBedsPerRow: state.cropBedsPerRow,
+      cropBedsPerRow: requestedBedsPerRow,
       plantedBedsPerRow: 0,
       cropLabel: crop.label,
       plantCount: 0,
@@ -179,17 +180,19 @@ export class CropSystem {
     for (const cropRow of cropRows) {
       cropSummary.interRowGap = Math.max(cropSummary.interRowGap, cropRow.interRowGap);
       cropSummary.cropRowWidth = Math.max(cropSummary.cropRowWidth, cropRow.width);
-      const bedCenters = fitCropBeds(cropRow, crop, state.cropBedsPerRow);
+      const bedTarget = cropRow.bedCountOverride ?? state.cropBedsPerRow;
+      const bedCenters = fitCropBeds(cropRow, crop, bedTarget);
       if (cropRow.width <= 0 || !bedCenters.length) {
-        if (cropRow.width > 0 && state.cropBedsPerRow > 0) {
+        if (cropRow.width > 0 && bedTarget > 0) {
           cropSummary.bedConstraintActive = true;
         }
         continue;
       }
 
       cropSummary.cropRowsAvailable += 1;
+      cropSummary.cropBedsPerRow = Math.max(cropSummary.cropBedsPerRow, bedTarget);
       cropSummary.plantedBedsPerRow = Math.max(cropSummary.plantedBedsPerRow, bedCenters.length);
-      cropSummary.bedConstraintActive ||= bedCenters.length < state.cropBedsPerRow;
+      cropSummary.bedConstraintActive ||= bedCenters.length < bedTarget;
       this.group.add(this.createCropZoneOutline(cropRow));
       for (const bed of this.createCropBedStrips(cropRow, bedCenters)) this.group.add(bed);
 
