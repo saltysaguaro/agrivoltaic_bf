@@ -75,3 +75,20 @@ test("pergola canopy rows can tighten without shrinking crop-row bands", () => {
     Number((state.rowSpacing - (state.cropRowBuffer * 2)).toFixed(6)),
   );
 });
+
+test("public pergola preset lays out the 55 kW canopy as 10 rows of 10 modules", () => {
+  const state = sanitizeState({
+    ...SYSTEM_PRESETS.raised,
+    systemType: "raised",
+    dcSizeKw: 55,
+    moduleW: 550,
+    forceModuleCount: false,
+  });
+  const layout = computeArrayLayout(state, getArchetype("raised"));
+
+  assert.equal(layout.moduleCount, 100);
+  assert.equal(layout.rowCount, 10);
+  assert.equal(layout.tablesPerRow, 10);
+  assert.equal(SYSTEM_PRESETS.raised.rowCountHint, 10);
+  assert.equal(SYSTEM_PRESETS.raised.maxTablesPerRow, 10);
+});
