@@ -19,6 +19,7 @@ const SYSTEM_DESCRIPTIONS = {
   vertical: "Vertical bifacial",
 };
 
+const DEFAULT_SYSTEM_TYPE = "fixed";
 const DEFAULT_MONTH_DAY = "06-21";
 const DEFAULT_MINUTES_IN_DAY = 10 * 60;
 
@@ -78,7 +79,7 @@ function stateFromQuery(defaultSite) {
       timezone: timeZone,
       timezoneApproximate: Boolean(querySite.timezoneApproximate),
     },
-    systemType: validSystemType(params.get("system")) ? params.get("system") : DEFAULTS.systemType,
+    systemType: validSystemType(params.get("system")) ? params.get("system") : DEFAULT_SYSTEM_TYPE,
     dateInput: params.get("date") || `${defaultYear}-${DEFAULT_MONTH_DAY}`,
     minutesInDay: timeValue ? parseTimeInput(timeValue) : DEFAULT_MINUTES_IN_DAY,
     viewPreset: params.get("view") || "arrayOblique",
@@ -181,7 +182,6 @@ async function bootPublicVisualizer() {
   function updateOverlay() {
     const systemOption = SYSTEM_TYPE_OPTIONS.find((option) => option.value === state.systemType);
     const systemLabel = systemOption?.label || "System";
-    elements.sceneHeading.textContent = `${systemLabel} shade preview`;
     elements.overlayTitle.textContent = `${state.site.label} • ${systemLabel}`;
     elements.overlayBody.textContent = solar
       ? `${solar.localDateTimeLabel} • ${roundTo(solar.azimuthDeg, 1).toFixed(1)}° az / ${roundTo(solar.apparentElevationDeg, 1).toFixed(1)}° el`

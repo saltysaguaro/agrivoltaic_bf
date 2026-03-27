@@ -269,7 +269,7 @@ body.public-visualizer-body {
 }
 
 .pv-meta-row {
-  flex-wrap: wrap;
+  display: none;
 }
 
 .pv-meta-cluster {
