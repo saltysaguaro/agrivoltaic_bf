@@ -43,14 +43,16 @@ export function createSummaryPanel(gridEl, noteEl, getContext = () => ({})) {
       {
         label: "Modules required",
         value: sceneSummary.moduleCount.toLocaleString(),
-        subvalue: `${sceneSummary.tablesNeeded.toLocaleString()} tables`,
+        subvalue: sceneSummary.checkerboardExpanded
+          ? `${sceneSummary.tablesNeeded.toLocaleString()} canopy positions`
+          : `${sceneSummary.tablesNeeded.toLocaleString()} tables`,
       },
       {
         label: "Rows",
         value: sceneSummary.rowCount.toLocaleString(),
         subvalue: state.rowColumnCount > 1
-          ? `${sceneSummary.tablesPerRow.toLocaleString()} tables / row • ${state.rowColumnCount.toLocaleString()} row columns`
-          : `${sceneSummary.tablesPerRow.toLocaleString()} tables / row`,
+          ? `${sceneSummary.tablesPerRow.toLocaleString()}${sceneSummary.checkerboardExpanded ? " positions" : " tables"} / row • ${state.rowColumnCount.toLocaleString()} row columns`
+          : `${sceneSummary.tablesPerRow.toLocaleString()}${sceneSummary.checkerboardExpanded ? " positions" : " tables"} / row`,
       },
       {
         label: "Array footprint",

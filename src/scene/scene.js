@@ -338,9 +338,11 @@ export function createSceneApp({ canvas }) {
 
     currentSceneSummary = {
       title: `${APP_TITLE} — ${assembly.archetype.label}`,
-      subtitle: `${assembly.layout.moduleCount.toLocaleString()} modules • ${assembly.layout.tablesNeeded.toLocaleString()} tables • ${assembly.layout.rowCount.toLocaleString()} rows`,
+      subtitle: `${assembly.layout.moduleCount.toLocaleString()} modules • ${assembly.layout.tablesNeeded.toLocaleString()}${assembly.layout.checkerboardExpanded ? " canopy positions" : " tables"} • ${assembly.layout.rowCount.toLocaleString()} rows`,
       systemLabel: assembly.archetype.label,
       moduleCount: assembly.layout.moduleCount,
+      canopyPositionCount: assembly.layout.canopyPositionCount,
+      checkerboardExpanded: assembly.layout.checkerboardExpanded,
       tablesNeeded: assembly.layout.tablesNeeded,
       tablesPerRow: assembly.layout.tablesPerRow,
       rowCount: assembly.layout.rowCount,

@@ -85,10 +85,18 @@ test("public pergola preset lays out the 55 kW canopy as 10 rows of 10 modules",
     forceModuleCount: false,
   });
   const layout = computeArrayLayout(state, getArchetype("raised"));
+  const visibleModulesPerRow = Array.from({ length: layout.rowCount }, (_, rowIndex) => {
+    return layout.anchors.filter((anchor: { row: number; col: number }) => {
+      return anchor.row === rowIndex && ((anchor.col + rowIndex) % 2 === 0);
+    }).length;
+  });
 
   assert.equal(layout.moduleCount, 100);
+  assert.equal(layout.cropRows.length, 10);
+  assert.equal(layout.canopyPositionCount, 200);
   assert.equal(layout.rowCount, 10);
-  assert.equal(layout.tablesPerRow, 10);
+  assert.equal(layout.tablesPerRow, 20);
   assert.equal(SYSTEM_PRESETS.raised.rowCountHint, 10);
-  assert.equal(SYSTEM_PRESETS.raised.maxTablesPerRow, 10);
+  assert.equal(SYSTEM_PRESETS.raised.maxTablesPerRow, 20);
+  assert.deepEqual(visibleModulesPerRow, [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]);
 });

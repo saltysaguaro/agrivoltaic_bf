@@ -104,7 +104,7 @@ export const SYSTEM_PRESETS = {
     rowColumnGap: 6.096,
     cropRowBuffer: 0.3048,
     arrayEdgeBuffer: 9.144,
-    maxTablesPerRow: 10,
+    maxTablesPerRow: 20,
     rowCountHint: 10,
     dcSizeKw: 55,
     cropType: "pepper",

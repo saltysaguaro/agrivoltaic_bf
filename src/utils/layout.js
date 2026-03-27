@@ -64,7 +64,9 @@ export function computeCrossAxisFootprint(state, archetype, tableSpec) {
 export function computeArrayLayout(state, archetype) {
   const tableSpec = computeTableSpec(state);
   const moduleCount = computeModuleCount(state);
-  const tablesNeeded = Math.ceil(moduleCount / tableSpec.modulesPerTable);
+  const checkerboardExpanded = archetype.id === "raised" && state.pergolaCheckerboard;
+  const canopyPositionCount = checkerboardExpanded ? moduleCount * 2 : moduleCount;
+  const tablesNeeded = Math.ceil(canopyPositionCount / tableSpec.modulesPerTable);
   const inRowGap = state.interModuleSpacing;
   const tableSpan = tableSpec.tableLength + inRowGap;
   const crossAxisFootprint = computeCrossAxisFootprint(state, archetype, tableSpec);
@@ -192,6 +194,8 @@ export function computeArrayLayout(state, archetype) {
   return {
     tableSpec,
     moduleCount,
+    canopyPositionCount,
+    checkerboardExpanded,
     tablesNeeded,
     tablesPerRow: tablesPerRowEffective,
     rowCount,
