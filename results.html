@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Results Explorer | Agrivoltaic Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./platform.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/build/three.module.js",
+          "three/addons/": "/node_modules/three/examples/jsm/",
+          "zod": "/node_modules/zod/index.js",
+          "@agrivoltaic/shared": "/packages/shared/dist/index.js",
+          "@agrivoltaic/three-exporter/browser": "/packages/three-exporter/dist/browser.js"
+        }
+      }
+    </script>
+  </head>
+  <body class="platform-body results-body">
+    <header class="results-header">
+      <div>
+        <p class="eyebrow">Results Explorer</p>
+        <h1>Irradiance visualization</h1>
+        <p id="resultsStatus" class="header-subtitle">Loading irradiance results…</p>
+      </div>
+      <div class="design-header__actions">
+        <a class="header-link" href="/design.html">Back to Design</a>
+        <button id="exportResultsViewButton" class="secondary-button" type="button">Export View</button>
+        <button id="saveResultsButton" class="primary-button" type="button">Save Results</button>
+      </div>
+    </header>
+
+    <main class="results-shell">
+      <aside class="results-controls card">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">Controls</p>
+            <h2>Metric and season</h2>
+          </div>
+        </div>
+
+        <label class="field-label" for="metricSelect">Metric</label>
+        <select id="metricSelect" class="platform-input"></select>
+
+        <label class="field-label" for="heightSelect">Height plane</label>
+        <select id="heightSelect" class="platform-input"></select>
+
+        <label class="field-label" for="startMonthSelect">Start month</label>
+        <select id="startMonthSelect" class="platform-input"></select>
+
+        <label class="field-label" for="endMonthSelect">End month</label>
+        <select id="endMonthSelect" class="platform-input"></select>
+
+        <label class="field-label" for="resultsOpacityRange">PV opacity <span id="resultsOpacityValue">100%</span></label>
+        <input id="resultsOpacityRange" class="range-input" type="range" min="0" max="100" step="1" value="100" />
+
+        <div class="view-preset-grid">
+          <button class="secondary-button" type="button" data-view-preset="rowOblique">Zoom to One Row</button>
+          <button class="secondary-button" type="button" data-view-preset="rowNadir">One Row Nadir</button>
+          <button class="secondary-button" type="button" data-view-preset="arrayOblique">Zoom to Whole Array</button>
+          <button class="secondary-button" type="button" data-view-preset="arrayNadir">Whole Array Nadir</button>
+        </div>
+      </aside>
+
+      <section class="results-viewport card">
+        <div class="results-viewport__canvas">
+          <canvas id="resultsCanvas"></canvas>
+          <div id="resultsHoverCard" class="results-hover-card" hidden></div>
+        </div>
+        <div class="results-viewport__legend">
+          <div class="legend-heading">
+            <h3>Heatmap legend</h3>
+            <span id="legendUnits"></span>
+          </div>
+          <div id="resultsLegend" class="legend legend--horizontal"></div>
+        </div>
+        <div class="results-info">
+          <div class="card-header">
+            <div>
+              <p class="eyebrow">Results Summary</p>
+              <h2>Current slice snapshot</h2>
+            </div>
+            <p class="card-hint">Updates with the selected metric, height, and date range</p>
+          </div>
+          <div id="resultsStats" class="results-stats"></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./src/platform/resultsPage.js"></script>
+  </body>
+</html>

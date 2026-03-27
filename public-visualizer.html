@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>Agrivoltaic Shade Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./public-visualizer.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="./public-visualizer.config.js"></script>
+  </head>
+  <body class="public-visualizer-body">
+    <div class="public-visualizer-page">
+      <aside class="public-visualizer-sidebar">
+        <header class="pv-hero">
+          <p class="pv-eyebrow">GitHub Pages Visualizer</p>
+          <h1>Quickly explore shade across standard 55 kW agrivoltaic systems.</h1>
+          <p class="pv-hero-copy">
+            Pick a location, choose a standard configuration, and scrub through the day and year to see how the sun path changes the three.js shade pattern.
+          </p>
+          <div class="pv-hero-badges">
+            <span>55 kW presets</span>
+            <span>Mapbox lookup</span>
+            <span>Solar-position driven</span>
+          </div>
+        </header>
+
+        <section class="pv-panel">
+          <div class="pv-panel-header">
+            <div>
+              <p class="pv-eyebrow">Location</p>
+              <h2>Search for a site</h2>
+            </div>
+          </div>
+          <label class="pv-label" for="siteSearchInput">Address or place name</label>
+          <div class="pv-search-shell">
+            <input
+              id="siteSearchInput"
+              class="pv-input"
+              type="text"
+              autocomplete="off"
+              placeholder="Start typing a farm, city, or street address"
+            />
+            <div id="siteSuggestions" class="pv-suggestion-list" role="listbox" aria-label="Location suggestions"></div>
+          </div>
+          <p id="siteLookupStatus" class="pv-support-copy">Waiting for Mapbox configuration.</p>
+          <div class="pv-site-chip">
+            <div>
+              <div id="selectedSiteLabel" class="pv-site-chip__title">Golden, Colorado</div>
+              <div id="selectedSiteMeta" class="pv-site-chip__meta">39.7555, -105.2211</div>
+            </div>
+            <span id="timezoneBadge" class="pv-badge">America/Denver</span>
+          </div>
+        </section>
+
+        <section class="pv-panel">
+          <div class="pv-panel-header">
+            <div>
+              <p class="pv-eyebrow">Configuration</p>
+              <h2>Choose a standard system</h2>
+            </div>
+          </div>
+          <div id="systemSelector" class="pv-system-grid" role="radiogroup" aria-label="System type"></div>
+        </section>
+
+        <section class="pv-panel">
+          <div class="pv-panel-header">
+            <div>
+              <p class="pv-eyebrow">Sun Controls</p>
+              <h2>Move through the year and the day</h2>
+            </div>
+          </div>
+          <div class="pv-field-grid">
+            <label class="pv-label" for="dateInput">Date</label>
+            <input id="dateInput" class="pv-input" type="date" />
+            <label class="pv-label" for="timeInput">Time</label>
+            <input id="timeInput" class="pv-input" type="time" step="900" />
+          </div>
+          <div class="pv-slider-shell">
+            <div class="pv-slider-copy">
+              <span>Time of day</span>
+              <strong id="timeDisplay">12:00 PM</strong>
+            </div>
+            <input id="timeSlider" class="pv-slider" type="range" min="0" max="1425" step="15" value="720" />
+            <div class="pv-slider-labels" aria-hidden="true">
+              <span>12a</span>
+              <span>6a</span>
+              <span>12p</span>
+              <span>6p</span>
+              <span>12a</span>
+            </div>
+          </div>
+          <p id="solarStatus" class="pv-support-copy">Select a location to compute the sun position.</p>
+        </section>
+
+        <section class="pv-panel">
+          <div class="pv-panel-header">
+            <div>
+              <p class="pv-eyebrow">Scene Summary</p>
+              <h2>Selected view details</h2>
+            </div>
+          </div>
+          <div id="summaryCards" class="pv-summary-grid"></div>
+          <p id="summaryNote" class="pv-note-copy">
+            These scenes are built from the same conceptual geometry used in the main visualizer.
+          </p>
+        </section>
+      </aside>
+
+      <main class="public-visualizer-stage">
+        <div class="pv-stage-header">
+          <div>
+            <p class="pv-eyebrow">Realtime Shade Preview</p>
+            <h2 id="sceneHeading">Agrivoltaic shade visualizer</h2>
+          </div>
+          <div class="pv-toolbar">
+            <button class="pv-ghost-button" type="button" data-view-preset="rowOblique">Row View</button>
+            <button class="pv-ghost-button" type="button" data-view-preset="arrayOblique">Array View</button>
+            <button id="copyLinkButton" class="pv-ghost-button" type="button">Copy Link</button>
+            <button id="snapshotButton" class="pv-primary-button" type="button">Save PNG</button>
+          </div>
+        </div>
+
+        <section class="pv-canvas-card">
+          <div id="canvasWrap" class="pv-canvas-wrap">
+            <div class="pv-canvas-glow"></div>
+            <div class="scene-overlay">
+              <div id="overlayTitle" class="scene-overlay__title">Agrivoltaic shade visualizer</div>
+              <div id="overlayBody" class="scene-overlay__body">
+                Orbit: drag • Zoom: scroll • Pan: right-drag
+              </div>
+            </div>
+            <canvas id="viewportCanvas"></canvas>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./src/public/publicVisualizerPage.js"></script>
+  </body>
+</html>

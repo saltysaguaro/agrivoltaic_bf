@@ -1,0 +1,16 @@
+{
+  "name": "@agrivoltaic/examples",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@agrivoltaic/simulation-backend": "workspace:*",
+    "@agrivoltaic/shared": "workspace:*",
+    "@agrivoltaic/three-exporter": "workspace:*",
+    "three": "^0.161.0"
+  }
+}

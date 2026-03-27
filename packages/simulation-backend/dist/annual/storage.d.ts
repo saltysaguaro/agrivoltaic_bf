@@ -1,0 +1,11 @@
+export declare function normalizeDirectoryPath(input: string, label?: string): string;
+export declare function assertSafeJobId(jobId: string): string;
+export declare function resolveDataRoot(baseDirectory?: string): string;
+export declare function resolveJobsRoot(baseDirectory?: string): string;
+export declare function resolveJobDirectory(jobId: string, baseDirectory?: string): string;
+export declare function ensureDirectory(path: string): Promise<void>;
+export declare function writeJson(path: string, value: unknown): Promise<void>;
+export declare function writeText(path: string, value: string): Promise<void>;
+export declare function readJson<T>(path: string): Promise<T>;
+export declare function readText(path: string): Promise<string>;
+export declare function pathExists(path: string): Promise<boolean>;

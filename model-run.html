@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Model Running | Agrivoltaic Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./platform.css" />
+  </head>
+  <body class="platform-body run-body">
+    <main class="run-shell">
+      <section class="card run-card">
+        <p class="eyebrow">Local Irradiance Model</p>
+        <h1 id="runPageTitle">Queued</h1>
+        <p id="runPageDetail" class="status-copy">Preparing the annual irradiance run locally.</p>
+
+        <div class="progress-track">
+          <div id="runProgressBar" class="progress-bar"></div>
+        </div>
+
+        <div id="runMeta" class="run-meta"></div>
+
+        <div class="site-actions">
+          <a id="returnDesignButton" class="secondary-button" href="/design.html">Return to Design</a>
+          <a id="openResultsButton" class="primary-button" href="#" hidden>Open Results</a>
+        </div>
+
+        <section class="run-log-card">
+          <div class="run-log-card__header">
+            <h2>Model Output</h2>
+            <p id="runLogStatus">Waiting for the local runner to start.</p>
+          </div>
+          <pre id="runLogOutput" class="run-log-output">No log output yet.</pre>
+        </section>
+      </section>
+    </main>
+
+    <script type="module" src="./src/platform/runPage.js"></script>
+  </body>
+</html>

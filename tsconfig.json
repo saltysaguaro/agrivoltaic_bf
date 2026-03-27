@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@agrivoltaic/shared": ["packages/shared/src/index.ts"],
+      "@agrivoltaic/three-exporter/browser": ["packages/three-exporter/src/browser.ts"],
+      "@agrivoltaic/three-exporter": ["packages/three-exporter/src/index.ts"],
+      "@agrivoltaic/simulation-backend": ["packages/simulation-backend/src/public-api.ts"]
+    }
+  },
+  "include": [
+    "packages/**/*.ts",
+    "tests/**/*.ts",
+    "tests/**/*.d.ts"
+  ]
+}

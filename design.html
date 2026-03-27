@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>System Design | Agrivoltaic Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./platform.css" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/build/three.module.js",
+          "three/addons/": "/node_modules/three/examples/jsm/",
+          "zod": "/node_modules/zod/index.js",
+          "@agrivoltaic/shared": "/packages/shared/dist/index.js",
+          "@agrivoltaic/three-exporter/browser": "/packages/three-exporter/dist/browser.js"
+        }
+      }
+    </script>
+  </head>
+  <body class="design-body">
+    <header class="design-header">
+      <div>
+        <p class="eyebrow">System Design</p>
+        <h1>three.js layout designer</h1>
+      </div>
+      <div class="design-header__actions">
+        <a class="header-link" href="/index.html">Back to Landing</a>
+        <button id="exportDesignViewButton" class="secondary-button" type="button">Export View</button>
+        <button id="saveProjectButton" class="secondary-button" type="button">Save Project</button>
+        <button id="openModelDialogButton" class="primary-button" type="button">Model Irradiance</button>
+      </div>
+    </header>
+
+    <div class="app-shell">
+      <aside class="side-column" id="leftRail"></aside>
+
+      <main class="viewport-column">
+        <section class="panel viewport-panel">
+          <div class="viewport-header">
+            <div>
+              <p class="eyebrow">Realtime Configurator</p>
+              <h1>Agrivoltaic PV Layout Visualizer</h1>
+            </div>
+            <div class="viewport-meta">
+              <span>Concept geometry</span>
+              <span>Annual-model ready</span>
+            </div>
+          </div>
+
+          <div id="canvasWrap" class="canvas-wrap">
+            <div class="scene-overlay" id="sceneOverlay">
+              <div class="scene-overlay__title" id="overlayTitle">Agrivoltaic PV Layout</div>
+              <div class="scene-overlay__body" id="overlayBody">
+                Orbit: drag • Zoom: scroll • Pan: right-drag
+              </div>
+            </div>
+            <canvas id="viewportCanvas"></canvas>
+          </div>
+          <div class="viewport-preset-row">
+            <button class="toolbar-button" type="button" data-view-preset="rowOblique">Zoom to One Row</button>
+            <button class="toolbar-button" type="button" data-view-preset="rowNadir">One Row Nadir</button>
+            <button class="toolbar-button" type="button" data-view-preset="arrayOblique">Zoom to Whole Array</button>
+            <button class="toolbar-button" type="button" data-view-preset="arrayNadir">Whole Array Nadir</button>
+          </div>
+        </section>
+
+        <section class="panel summary-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Computed Summary</p>
+              <h2>Array Snapshot</h2>
+            </div>
+            <p class="panel-hint">Updates as you edit inputs</p>
+          </div>
+          <div class="summary-grid" id="summaryGrid"></div>
+          <p class="summary-note" id="summaryNote">
+            Simplified visualization only. Structural engineering, terrain, and electrical details are intentionally omitted.
+          </p>
+        </section>
+      </main>
+
+      <aside class="side-column" id="rightRail"></aside>
+    </div>
+
+    <div id="modelLaunchOverlay" class="launch-overlay" hidden>
+        <div class="launch-overlay__card">
+          <p class="eyebrow">Preparing Sensor Layout</p>
+        <h2>Opening sensor selection</h2>
+          <div class="launch-spinner" aria-hidden="true"></div>
+        <p id="modelLaunchText" class="status-copy">Saving the project snapshot and opening the sensor selection workspace.</p>
+      </div>
+    </div>
+
+    <script type="module" src="./src/platform/designPage.js"></script>
+  </body>
+</html>

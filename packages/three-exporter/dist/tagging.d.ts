@@ -1,0 +1,11 @@
+import { type SimulationMetadata } from "@agrivoltaic/shared";
+import type { Object3D } from "three";
+export declare const SIMULATION_METADATA_KEY = "simulationMetadata";
+export declare const SIMPLIFIED_MESH_KEY = "simulationLODMeshes";
+export declare const STABLE_ID_KEY = "simulationStableId";
+export declare function ensureStableSimulationId(object: Object3D): string;
+export declare function getStableSimulationId(object: Object3D): string | undefined;
+export declare function attachSimulationMetadata(object: Object3D, metadata: Partial<SimulationMetadata>): SimulationMetadata;
+export declare function getSimulationMetadata(object: Object3D): SimulationMetadata | undefined;
+export declare function attachSimulationLOD(object: Object3D, lodId: string, simulationMesh: Object3D): void;
+export declare function resolveSimulationMesh(object: Object3D): Object3D;

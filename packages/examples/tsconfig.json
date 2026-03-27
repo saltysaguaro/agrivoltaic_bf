@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "baseUrl": "../..",
+    "paths": {
+      "@agrivoltaic/shared": ["packages/shared/dist/index.d.ts"],
+      "@agrivoltaic/three-exporter": ["packages/three-exporter/dist/index.d.ts"],
+      "@agrivoltaic/simulation-backend": ["packages/simulation-backend/dist/public-api.d.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}
