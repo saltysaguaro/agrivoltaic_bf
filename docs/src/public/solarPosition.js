@@ -9,6 +9,10 @@ function pad2(value) {
   return String(value).padStart(2, "0");
 }
 
+function normalizeKey(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
 function toRadians(degrees) {
   return (degrees * Math.PI) / 180;
 }
@@ -70,9 +74,28 @@ export function isValidTimeZone(timeZone) {
   }
 }
 
+function timeZoneFromRegion(site) {
+  const country = normalizeKey(site?.country);
+  const region = normalizeKey(site?.region);
+  const regionCode = normalizeKey(site?.regionCode);
+  const countryCode = normalizeKey(site?.countryCode);
+
+  if (countryCode === "us" || country === "united states" || country === "united states of america") {
+    if (region === "arizona" || regionCode === "us-az" || regionCode === "az") return "America/Phoenix";
+    if (region === "hawaii" || regionCode === "us-hi" || regionCode === "hi") return "Pacific/Honolulu";
+    if (region === "alaska" || regionCode === "us-ak" || regionCode === "ak") return "America/Anchorage";
+  }
+
+  return "";
+}
+
 export function resolveSiteTimeZone(site) {
   if (isValidTimeZone(site?.timezone)) {
     return site.timezone;
+  }
+  const regionalTimeZone = timeZoneFromRegion(site);
+  if (regionalTimeZone) {
+    return regionalTimeZone;
   }
   return approximateTimezoneFromLongitude(Number(site?.longitude ?? 0));
 }

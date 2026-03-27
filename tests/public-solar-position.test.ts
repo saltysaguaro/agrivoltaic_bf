@@ -58,3 +58,31 @@ test("invalid time zones fall back to a longitude-based estimate", async () => {
   });
   assert.equal(timeZone, "America/Denver");
 });
+
+test("Arizona locations use America/Phoenix when Mapbox only provides region context", async () => {
+  const { resolveSiteTimeZone, computeSolarPosition } = await loadSolarModule();
+  const site = {
+    latitude: 32.2226,
+    longitude: -110.9747,
+    region: "Arizona",
+    regionCode: "US-AZ",
+    country: "United States",
+    countryCode: "us",
+    timezone: "",
+  };
+
+  site.timezone = resolveSiteTimeZone(site);
+  assert.equal(site.timezone, "America/Phoenix");
+
+  const solar = computeSolarPosition({
+    latitude: site.latitude,
+    longitude: site.longitude,
+    dateInput: "2026-06-21",
+    minutesInDay: 10 * 60,
+    timeZone: site.timezone,
+  });
+
+  assert.equal(solar.timeZone, "America/Phoenix");
+  assert.ok(solar.apparentElevationDeg > 50 && solar.apparentElevationDeg < 60);
+  assert.ok(solar.azimuthDeg > 90 && solar.azimuthDeg < 110);
+});

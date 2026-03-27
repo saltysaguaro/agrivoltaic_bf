@@ -50,6 +50,10 @@ function findContextText(feature, prefix) {
   return feature.context?.find((entry) => String(entry.id || "").startsWith(prefix))?.text;
 }
 
+function findContextShortCode(feature, prefix) {
+  return feature.context?.find((entry) => String(entry.id || "").startsWith(prefix))?.short_code;
+}
+
 function normalizeFeature(feature) {
   const center = Array.isArray(feature.center) ? feature.center : [0, 0];
   const longitude = Number(center[0] ?? 0);
@@ -64,8 +68,46 @@ function normalizeFeature(feature) {
     timezone: approximateTimezoneFromLongitude(longitude),
     timezoneApproximate: true,
     region: findContextText(feature, "region"),
+    regionCode: findContextShortCode(feature, "region"),
     country: findContextText(feature, "country"),
+    countryCode: findContextShortCode(feature, "country"),
   };
+}
+
+async function mapboxErrorMessage(response) {
+  let detail = "";
+  try {
+    const payload = await response.json();
+    if (typeof payload?.message === "string" && payload.message.trim()) {
+      detail = payload.message.trim();
+    }
+  } catch {
+    // The response body is only used to improve the status text, so parse failures are ignored.
+  }
+
+  if (response.status === 403) {
+    const origin = window.location.origin;
+    const hint = [
+      "Mapbox rejected the public token (403).",
+      "Confirm the token allows geocoding/search requests and that its allowed URL list includes",
+      origin,
+      "exactly.",
+      "Browsers only send the origin on this cross-site request, so a path-only restriction like",
+      `${origin}${window.location.pathname}`,
+      "will not match by itself.",
+    ].join(" ");
+    return detail ? `${hint} Mapbox says: ${detail}` : hint;
+  }
+
+  if (response.status === 401) {
+    return detail
+      ? `Mapbox rejected the token (401). ${detail}`
+      : "Mapbox rejected the token (401). Check that the published config contains the current public token.";
+  }
+
+  return detail
+    ? `Mapbox lookup failed with status ${response.status}. ${detail}`
+    : `Mapbox lookup failed with status ${response.status}.`;
 }
 
 async function fetchMapboxFeatures(query, token, { autocomplete, limit }) {
@@ -82,7 +124,7 @@ async function fetchMapboxFeatures(query, token, { autocomplete, limit }) {
     },
   });
   if (!response.ok) {
-    throw new Error(`Mapbox lookup failed with status ${response.status}.`);
+    throw new Error(await mapboxErrorMessage(response));
   }
 
   const payload = await response.json();
@@ -112,6 +154,10 @@ export function normalizeConfiguredSite(site) {
     longitude: Number(site?.longitude ?? -105.2211),
     timezone: String(site?.timezone ?? approximateTimezoneFromLongitude(Number(site?.longitude ?? -105.2211))),
     timezoneApproximate: Boolean(site?.timezoneApproximate),
+    region: String(site?.region ?? ""),
+    regionCode: String(site?.regionCode ?? ""),
+    country: String(site?.country ?? ""),
+    countryCode: String(site?.countryCode ?? ""),
   };
 }
 
