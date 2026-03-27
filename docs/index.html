@@ -70,7 +70,12 @@
               <label class="pv-label" for="timeInput">Hour</label>
               <strong id="timeDisplay">10:00 AM</strong>
             </div>
-            <input id="timeInput" class="pv-input" type="time" step="900" />
+            <input id="timeInput" class="pv-range-input" type="range" min="0" max="1439" step="15" value="600" />
+            <div class="pv-time-scale" aria-hidden="true">
+              <span>12a</span>
+              <span>12p</span>
+              <span>12a</span>
+            </div>
           </section>
         </div>
 

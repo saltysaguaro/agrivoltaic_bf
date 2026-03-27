@@ -53,3 +53,25 @@ test("pergola crop rows use the full row pitch minus crop-row edge setbacks", ()
   );
   assert.ok(layout.cropRows[0]!.width > layout.crossAxisFootprint);
 });
+
+test("pergola canopy rows can tighten without shrinking crop-row bands", () => {
+  const state = sanitizeState({
+    ...SYSTEM_PRESETS.raised,
+    systemType: "raised",
+    rowSpacing: 9.144,
+    pergolaRackGap: 1.5,
+    cropRowBuffer: 0.3048,
+  });
+  const layout = computeArrayLayout(state, getArchetype("raised"));
+  const rowCenters = Array.from(
+    new Set<number>(layout.anchors.map((anchor: { z: number }) => Number(anchor.z.toFixed(6)))),
+  ).sort((a: number, b: number) => a - b);
+
+  assert.equal(SYSTEM_PRESETS.raised.pergolaCheckerboard, true);
+  assert.ok(rowCenters.length > 1);
+  assert.ok(rowCenters[1]! - rowCenters[0]! < state.rowSpacing);
+  assert.equal(
+    Number(layout.cropRows[0]!.width.toFixed(6)),
+    Number((state.rowSpacing - (state.cropRowBuffer * 2)).toFixed(6)),
+  );
+});

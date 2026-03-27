@@ -79,6 +79,9 @@ export function computeArrayLayout(state, archetype) {
   }
 
   const rowPitch = state.rowSpacing;
+  const structuralRowPitch = archetype.id === "raised" && state.pergolaRackGap > 0
+    ? crossAxisFootprint + state.pergolaRackGap
+    : rowPitch;
   const tablesPerRowEffective = Math.max(1, Math.ceil(tablesNeeded / rowCount));
   const spanAlongRow = tableSpec.tableLength + Math.max(0, tablesPerRowEffective - 1) * tableSpan;
   const totalRowColumns = Math.max(1, Math.min(state.rowColumnCount || 1, rowCount));
@@ -88,8 +91,17 @@ export function computeArrayLayout(state, archetype) {
     return base + (index < remainder ? 1 : 0);
   }).filter((count) => count > 0);
   const rowColumnCount = rowsPerColumn.length;
-  const rowDepthByColumn = rowsPerColumn.map((count) => crossAxisFootprint + Math.max(0, count - 1) * rowPitch);
-  const maxColumnDepth = rowDepthByColumn.length ? Math.max(...rowDepthByColumn) : crossAxisFootprint;
+  const rowDepthByColumn = rowsPerColumn.map((count) => {
+    return crossAxisFootprint + Math.max(0, count - 1) * structuralRowPitch;
+  });
+  const cropDepthByColumn = rowsPerColumn.map((count) => {
+    return archetype.id === "raised"
+      ? crossAxisFootprint + Math.max(0, count - 1) * rowPitch
+      : crossAxisFootprint + Math.max(0, count - 1) * structuralRowPitch;
+  });
+  const maxColumnDepth = rowDepthByColumn.length
+    ? Math.max(...rowDepthByColumn, ...cropDepthByColumn)
+    : crossAxisFootprint;
   const rowReferenceMode = archetype.crossAxisAnchorMode || "leading-edge";
 
   const isTrackerOrientation = archetype.rowAxis === "z";
@@ -112,11 +124,16 @@ export function computeArrayLayout(state, archetype) {
 
   rowsPerColumn.forEach((rowsInColumn, columnIndex) => {
     const columnDepth = rowDepthByColumn[columnIndex];
+    const cropDepth = cropDepthByColumn[columnIndex];
     const depthOffset = (maxColumnDepth - columnDepth) / 2;
+    const cropDepthOffset = (maxColumnDepth - cropDepth) / 2;
     const arrayId = `array-${String(columnIndex + 1).padStart(2, "0")}`;
     const rowStart = rowReferenceMode === "center"
       ? (-maxColumnDepth / 2) + depthOffset + (crossAxisFootprint / 2)
       : (-maxColumnDepth / 2) + depthOffset;
+    const cropRowStart = rowReferenceMode === "center"
+      ? (-maxColumnDepth / 2) + cropDepthOffset + (crossAxisFootprint / 2)
+      : (-maxColumnDepth / 2) + cropDepthOffset;
 
     rowColumnLayouts.push({
       arrayId,
@@ -124,8 +141,13 @@ export function computeArrayLayout(state, archetype) {
       rowsInColumn,
       centerOffset: columnCenters[columnIndex],
       depthOffset,
+      cropDepthOffset,
       rowStart,
+      cropRowStart,
       depth: columnDepth,
+      cropDepth,
+      structuralRowPitch,
+      cropRowPitch: rowPitch,
     });
 
     for (let rowIndexInColumn = 0; rowIndexInColumn < rowsInColumn; rowIndexInColumn++) {
@@ -137,14 +159,14 @@ export function computeArrayLayout(state, archetype) {
       if (isTrackerOrientation) {
         const zCenter = columnCenters[columnIndex];
         const eastEdgeX = arrayW / 2 - depthOffset;
-        const x = eastEdgeX - rowIndexInColumn * rowPitch;
+        const x = eastEdgeX - rowIndexInColumn * structuralRowPitch;
         for (let col = 0; col < tableCount; col++) {
           const z = zCenter - (spanAlongRow / 2) + (tableSpec.tableLength / 2) + col * tableSpan;
           anchors.push({ row: rowGlobal, rowId, col, x, z, arrayId, rowColumn: columnIndex });
         }
       } else {
         const centerX = columnCenters[columnIndex] - (spanAlongRow / 2) + (tableSpec.tableLength / 2);
-        const z = rowStart + rowIndexInColumn * rowPitch;
+        const z = rowStart + rowIndexInColumn * structuralRowPitch;
         for (let col = 0; col < tableCount; col++) {
           const x = centerX + col * tableSpan;
           anchors.push({ row: rowGlobal, rowId, col, x, z, arrayId, rowColumn: columnIndex });
@@ -158,7 +180,7 @@ export function computeArrayLayout(state, archetype) {
     arrayD,
     rowCount,
     rowColumnCount,
-    rowPitch,
+    rowPitch: archetype.id === "raised" ? rowPitch : structuralRowPitch,
     crossAxisFootprint,
     archetype,
     state,
@@ -297,11 +319,11 @@ function computePergolaCropRows({
   if (rowCount < 1) return [];
 
   const cropRows = [];
-  const canopyGap = Math.max(0, rowPitch - crossAxisFootprint);
+  const canopyGap = Math.max(0, (rowColumnLayouts[0]?.structuralRowPitch ?? rowPitch) - crossAxisFootprint);
 
   for (const columnLayout of rowColumnLayouts) {
     for (let rowIndex = 0; rowIndex < columnLayout.rowsInColumn; rowIndex++) {
-      const rowCenter = columnLayout.rowStart + rowIndex * rowPitch;
+      const rowCenter = (columnLayout.cropRowStart ?? columnLayout.rowStart) + rowIndex * rowPitch;
       const southEdge = rowCenter - (rowPitch / 2);
       const northEdge = rowCenter + (rowPitch / 2);
       const plantableStart = southEdge + state.cropRowBuffer;

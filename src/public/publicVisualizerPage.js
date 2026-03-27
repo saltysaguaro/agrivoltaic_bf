@@ -146,6 +146,14 @@ function renderViewButtons(buttons, activeView) {
   });
 }
 
+function parseControlMinutes(value) {
+  const numericValue = Number(value);
+  if (Number.isFinite(numericValue)) {
+    return roundMinutes(numericValue);
+  }
+  return roundMinutes(parseTimeInput(value));
+}
+
 async function bootPublicVisualizer() {
   const config = window.AGRIVOLTAIC_PUBLIC_CONFIG || {};
   const elements = queryElements();
@@ -172,10 +180,11 @@ async function bootPublicVisualizer() {
   }
 
   function updateTimeControls() {
-    // The public page uses a single time input, rounded to the fifteen-minute increments shared in URLs.
+    // The public page keeps a continuous slider in sync with the shared-link time value.
     const roundedMinutes = roundMinutes(state.minutesInDay);
     state.minutesInDay = roundedMinutes;
-    elements.timeInput.value = formatTimeInput(roundedMinutes);
+    elements.timeInput.value = String(roundedMinutes);
+    elements.timeInput.setAttribute("aria-valuetext", formatTimeLabel(roundedMinutes));
     elements.timeDisplay.textContent = formatTimeLabel(roundedMinutes);
   }
 
@@ -225,7 +234,7 @@ async function bootPublicVisualizer() {
   function selectSystemType(systemType) {
     state.systemType = systemType;
     renderSystemButtons(elements.systemSelector, state.systemType, selectSystemType);
-    rebuildScene({ resetView: true });
+    rebuildScene();
   }
 
   renderSiteSummary(elements, state.site);
@@ -259,7 +268,7 @@ async function bootPublicVisualizer() {
 
   function handleTimeInput() {
     if (!elements.timeInput.value) return;
-    state.minutesInDay = roundMinutes(parseTimeInput(elements.timeInput.value));
+    state.minutesInDay = parseControlMinutes(elements.timeInput.value);
     updateTimeControls();
     rebuildScene();
   }
@@ -306,7 +315,7 @@ async function bootPublicVisualizer() {
   });
   viewportObserver.observe(elements.canvasWrap);
 
-  rebuildScene({ resetView: true });
+  rebuildScene();
 }
 
 void bootPublicVisualizer();

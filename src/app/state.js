@@ -21,6 +21,7 @@ function applyNumericRules(next) {
   next.trackerAngleDeg = clamp(toFiniteNumber(next.trackerAngleDeg, DEFAULTS.trackerAngleDeg), -75, 75);
   next.systemAzimuthDeg = normalizedModulo(toFiniteNumber(next.systemAzimuthDeg, DEFAULTS.systemAzimuthDeg), 360);
   next.heightM = Math.max(0, toFiniteNumber(next.heightM, DEFAULTS.heightM));
+  next.pergolaRackGap = Math.max(0, toFiniteNumber(next.pergolaRackGap, DEFAULTS.pergolaRackGap));
   next.rowSpacing = Math.max(0.5, toFiniteNumber(next.rowSpacing, DEFAULTS.rowSpacing));
   next.rowColumnCount = Math.max(1, Math.round(toFiniteNumber(next.rowColumnCount, DEFAULTS.rowColumnCount)));
   next.rowColumnGap = Math.max(0, toFiniteNumber(next.rowColumnGap, DEFAULTS.rowColumnGap));
@@ -82,6 +83,7 @@ export function serializeSystemConfig(state) {
       pergolaTracking: state.pergolaTracking,
     },
     layout: {
+      pergolaRackGapM: state.pergolaRackGap,
       rowSpacingM: state.rowSpacing,
       interpanelSpacingM: state.interModuleSpacing,
       rowColumnCount: state.rowColumnCount,
