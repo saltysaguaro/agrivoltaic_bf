@@ -163,13 +163,10 @@ async function bootPublicVisualizer() {
   let copyResetTimer = 0;
   let viewportSyncFrame = 0;
 
-  function syncSceneViewport({ refitView = false } = {}) {
+  function syncSceneViewport() {
     window.cancelAnimationFrame(viewportSyncFrame);
     viewportSyncFrame = window.requestAnimationFrame(() => {
       sceneApp.resize();
-      if (refitView && sceneState) {
-        sceneApp.setViewPreset(sceneState, state.viewPreset);
-      }
     });
   }
 
@@ -211,6 +208,8 @@ async function bootPublicVisualizer() {
     if (resetView) {
       state.viewPreset = "arrayOblique";
     }
+    sceneApp.resize();
+    sceneApp.setViewPreset(sceneState, state.viewPreset);
 
     updateOverlay();
     syncUrl(state);
@@ -220,7 +219,7 @@ async function bootPublicVisualizer() {
       ? `${solar.localDateTimeLabel} • shade active`
       : `${solar.localDateTimeLabel} • sun below horizon`;
 
-    syncSceneViewport({ refitView: true });
+    syncSceneViewport();
   }
 
   function selectSystemType(systemType) {

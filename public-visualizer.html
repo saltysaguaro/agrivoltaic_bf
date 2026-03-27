@@ -39,7 +39,7 @@
         </div>
 
         <div class="pv-controls">
-          <div class="pv-control pv-control--site">
+          <section class="pv-panel pv-panel--control pv-control pv-control--site">
             <label class="pv-label" for="siteSearchInput">Location</label>
             <div class="pv-search-shell">
               <input
@@ -51,25 +51,25 @@
               />
               <div id="siteSuggestions" class="pv-suggestion-list" role="listbox" aria-label="Location suggestions"></div>
             </div>
-          </div>
+          </section>
 
-          <div class="pv-control pv-control--system">
+          <section class="pv-panel pv-panel--control pv-control pv-control--system">
             <span class="pv-label">Configuration</span>
             <div id="systemSelector" class="pv-system-grid" role="radiogroup" aria-label="System type"></div>
-          </div>
+          </section>
 
-          <div class="pv-control pv-control--date">
+          <section class="pv-panel pv-panel--control pv-control pv-control--date">
             <label class="pv-label" for="dateInput">Date</label>
             <input id="dateInput" class="pv-input" type="date" />
-          </div>
+          </section>
 
-          <div class="pv-control pv-control--time">
+          <section class="pv-panel pv-panel--control pv-control pv-control--time">
             <div class="pv-control-head">
               <label class="pv-label" for="timeInput">Hour</label>
               <strong id="timeDisplay">10:00 AM</strong>
             </div>
             <input id="timeInput" class="pv-input" type="time" step="900" />
-          </div>
+          </section>
         </div>
 
         <div class="pv-meta-row">

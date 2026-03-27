@@ -121,50 +121,6 @@ function makeRectLine(width, depth, y, material) {
   return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material);
 }
 
-function boxCorners(box) {
-  const { min, max } = box;
-  return [
-    new THREE.Vector3(min.x, min.y, min.z),
-    new THREE.Vector3(min.x, min.y, max.z),
-    new THREE.Vector3(min.x, max.y, min.z),
-    new THREE.Vector3(min.x, max.y, max.z),
-    new THREE.Vector3(max.x, min.y, min.z),
-    new THREE.Vector3(max.x, min.y, max.z),
-    new THREE.Vector3(max.x, max.y, min.z),
-    new THREE.Vector3(max.x, max.y, max.z),
-  ];
-}
-
-function fitDistanceForBounds(camera, box, direction) {
-  const center = box.getCenter(new THREE.Vector3());
-  const forward = direction.clone().negate().normalize();
-  const referenceUp = Math.abs(forward.dot(new THREE.Vector3(0, 1, 0))) > 0.96
-    ? new THREE.Vector3(0, 0, 1)
-    : new THREE.Vector3(0, 1, 0);
-  const right = new THREE.Vector3().crossVectors(referenceUp, forward).normalize();
-  const up = new THREE.Vector3().crossVectors(forward, right).normalize();
-  const verticalFov = THREE.MathUtils.degToRad(camera.fov);
-  const horizontalFov = 2 * Math.atan(Math.tan(verticalFov * 0.5) * Math.max(camera.aspect, 0.1));
-  const tanVertical = Math.max(Math.tan(verticalFov * 0.5), 0.01);
-  const tanHorizontal = Math.max(Math.tan(horizontalFov * 0.5), 0.01);
-
-  let distance = 0;
-  for (const corner of boxCorners(box)) {
-    const offset = corner.sub(center);
-    const x = Math.abs(offset.dot(right));
-    const y = Math.abs(offset.dot(up));
-    const z = offset.dot(forward);
-    distance = Math.max(
-      distance,
-      (x / tanHorizontal) - z,
-      (y / tanVertical) - z,
-    );
-  }
-
-  const size = box.getSize(new THREE.Vector3());
-  return Math.max(distance * 1.08, size.length() * 0.18 + 8);
-}
-
 function frameSceneToObject(camera, controls, lightRig, object) {
   const box = new THREE.Box3().setFromObject(object);
   if (!Number.isFinite(box.min.x) || !Number.isFinite(box.max.x)) return;
@@ -184,7 +140,7 @@ function frameSceneToBounds(camera, controls, lightRig, box, directionInput) {
   const direction = directionInput
     ? directionInput.clone().normalize()
     : new THREE.Vector3(0.88, 0.56, 0.46).normalize();
-  const distance = fitDistanceForBounds(camera, box, direction);
+  const distance = maxDim * 1.15 + 12;
 
   camera.position.copy(center).addScaledVector(direction, distance);
   controls.target.copy(center);
