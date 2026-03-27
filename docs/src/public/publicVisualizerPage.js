@@ -1,6 +1,5 @@
 import { createSceneApp } from "../scene/scene.js";
 import { DEFAULTS, SYSTEM_PRESETS, SYSTEM_TYPE_OPTIONS } from "../utils/constants.js";
-import { formatDimensions, formatLength } from "../utils/units.js";
 import { roundTo } from "../utils/math.js";
 import {
   computeSolarPosition,
@@ -34,38 +33,17 @@ function queryElements() {
     systemSelector: document.getElementById("systemSelector"),
     dateInput: document.getElementById("dateInput"),
     timeInput: document.getElementById("timeInput"),
-    timeSlider: document.getElementById("timeSlider"),
     timeDisplay: document.getElementById("timeDisplay"),
     solarStatus: document.getElementById("solarStatus"),
-    summaryCards: document.getElementById("summaryCards"),
-    summaryNote: document.getElementById("summaryNote"),
     sceneHeading: document.getElementById("sceneHeading"),
     overlayTitle: document.getElementById("overlayTitle"),
     overlayBody: document.getElementById("overlayBody"),
+    canvasWrap: document.getElementById("canvasWrap"),
     canvas: document.getElementById("viewportCanvas"),
     snapshotButton: document.getElementById("snapshotButton"),
     copyLinkButton: document.getElementById("copyLinkButton"),
     viewButtons: [...document.querySelectorAll("[data-view-preset]")],
   };
-}
-
-function buildSummaryCard({ label, value, meta }) {
-  const card = document.createElement("article");
-  card.className = "pv-summary-card";
-  const labelEl = document.createElement("div");
-  labelEl.className = "pv-summary-card__label";
-  labelEl.textContent = label;
-
-  const valueEl = document.createElement("div");
-  valueEl.className = "pv-summary-card__value";
-  valueEl.textContent = value;
-
-  const metaEl = document.createElement("div");
-  metaEl.className = "pv-summary-card__meta";
-  metaEl.textContent = meta;
-
-  card.append(labelEl, valueEl, metaEl);
-  return card;
 }
 
 function validSystemType(value) {
@@ -145,10 +123,9 @@ function renderSystemButtons(container, selectedSystem, onSelect) {
       button.className = `pv-system-button${option.value === selectedSystem ? " is-active" : ""}`;
       button.setAttribute("role", "radio");
       button.setAttribute("aria-checked", option.value === selectedSystem ? "true" : "false");
-      button.innerHTML = `
-        <strong>${option.label}</strong>
-        <span>${SYSTEM_DESCRIPTIONS[option.value] || "Standard 55 kW layout preset."}</span>
-      `;
+      button.setAttribute("title", SYSTEM_DESCRIPTIONS[option.value] || "Standard 55 kW layout preset.");
+      button.setAttribute("aria-label", `${option.label}: ${SYSTEM_DESCRIPTIONS[option.value] || "Standard 55 kW layout preset."}`);
+      button.innerHTML = `<strong>${option.label}</strong>`;
       button.addEventListener("click", () => onSelect(option.value));
       return button;
     }),
@@ -168,53 +145,6 @@ function renderViewButtons(buttons, activeView) {
   });
 }
 
-function renderSummary(elements, {
-  site,
-  sceneState,
-  sceneSummary,
-  solar,
-  systemLabel,
-}) {
-  // Summary cards mirror the public controls and scene state without exposing the full local app settings.
-  const cards = [
-    {
-      label: "Site",
-      value: site.label,
-      meta: `${site.latitude.toFixed(2)}, ${site.longitude.toFixed(2)}`,
-    },
-    {
-      label: "Time",
-      value: solar.localDateTimeLabel,
-      meta: `${solar.timeZone} • ${solar.timeZoneOffsetLabel}`,
-    },
-    {
-      label: "Sun",
-      value: `${roundTo(solar.azimuthDeg, 1).toFixed(1)}° az • ${roundTo(solar.apparentElevationDeg, 1).toFixed(1)}° el`,
-      meta: solar.isDaylight ? "Daylight" : "Below horizon",
-    },
-    {
-      label: "System",
-      value: systemLabel,
-      meta: "55 kW preset",
-    },
-    {
-      label: "Array",
-      value: sceneSummary.moduleCount.toLocaleString(),
-      meta: `${sceneSummary.rowCount.toLocaleString()} rows • ${sceneSummary.tablesNeeded.toLocaleString()} tables`,
-    },
-    {
-      label: "Footprint",
-      value: formatDimensions(sceneSummary.arrayW, sceneSummary.arrayD, sceneState),
-      meta: `Pitch ${formatLength(sceneSummary.rowPitch, sceneState, { decimalsMetric: 1, decimalsImperial: 1 })}`,
-    },
-  ];
-
-  elements.summaryCards.replaceChildren(...cards.map(buildSummaryCard));
-  elements.summaryNote.textContent = solar.isDaylight
-    ? "Direct shadows are active."
-    : "Direct sun is off below the horizon.";
-}
-
 async function bootPublicVisualizer() {
   const config = window.AGRIVOLTAIC_PUBLIC_CONFIG || {};
   const elements = queryElements();
@@ -231,13 +161,23 @@ async function bootPublicVisualizer() {
   let sceneSummary = null;
   let solar = null;
   let copyResetTimer = 0;
+  let viewportSyncFrame = 0;
+
+  function syncSceneViewport({ refitView = false } = {}) {
+    window.cancelAnimationFrame(viewportSyncFrame);
+    viewportSyncFrame = window.requestAnimationFrame(() => {
+      sceneApp.resize();
+      if (refitView && sceneState) {
+        sceneApp.setViewPreset(sceneState, state.viewPreset);
+      }
+    });
+  }
 
   function updateTimeControls() {
-    // The slider, time input, and URL all work from the same rounded minute value.
+    // The public page uses a single time input, rounded to the fifteen-minute increments shared in URLs.
     const roundedMinutes = roundMinutes(state.minutesInDay);
     state.minutesInDay = roundedMinutes;
     elements.timeInput.value = formatTimeInput(roundedMinutes);
-    elements.timeSlider.value = String(roundedMinutes);
     elements.timeDisplay.textContent = formatTimeLabel(roundedMinutes);
   }
 
@@ -271,23 +211,16 @@ async function bootPublicVisualizer() {
     if (resetView) {
       state.viewPreset = "arrayOblique";
     }
-    sceneApp.setViewPreset(sceneState, state.viewPreset);
 
-    const systemOption = SYSTEM_TYPE_OPTIONS.find((option) => option.value === state.systemType);
-    renderSummary(elements, {
-      site: state.site,
-      sceneState,
-      sceneSummary,
-      solar,
-      systemLabel: systemOption?.label || state.systemType,
-    });
     updateOverlay();
     syncUrl(state);
     renderViewButtons(elements.viewButtons, state.viewPreset);
 
     elements.solarStatus.textContent = solar.isDaylight
-      ? `${solar.localDateTimeLabel} • direct shade is active.`
-      : `${solar.localDateTimeLabel} • sun below horizon.`;
+      ? `${solar.localDateTimeLabel} • shade active`
+      : `${solar.localDateTimeLabel} • sun below horizon`;
+
+    syncSceneViewport({ refitView: true });
   }
 
   function selectSystemType(systemType) {
@@ -319,22 +252,23 @@ async function bootPublicVisualizer() {
     },
   });
 
-  elements.dateInput.addEventListener("change", () => {
-    state.dateInput = elements.dateInput.value || state.dateInput;
+  function handleDateInput() {
+    if (!elements.dateInput.value || elements.dateInput.value === state.dateInput) return;
+    state.dateInput = elements.dateInput.value;
     rebuildScene();
-  });
+  }
 
-  elements.timeInput.addEventListener("change", () => {
+  function handleTimeInput() {
+    if (!elements.timeInput.value) return;
     state.minutesInDay = roundMinutes(parseTimeInput(elements.timeInput.value));
     updateTimeControls();
     rebuildScene();
-  });
+  }
 
-  elements.timeSlider.addEventListener("input", () => {
-    state.minutesInDay = roundMinutes(Number(elements.timeSlider.value));
-    updateTimeControls();
-    rebuildScene();
-  });
+  elements.dateInput.addEventListener("input", handleDateInput);
+  elements.dateInput.addEventListener("change", handleDateInput);
+  elements.timeInput.addEventListener("input", handleTimeInput);
+  elements.timeInput.addEventListener("change", handleTimeInput);
 
   elements.viewButtons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -366,7 +300,12 @@ async function bootPublicVisualizer() {
     }
   });
 
-  window.addEventListener("resize", () => sceneApp.resize());
+  window.addEventListener("resize", () => syncSceneViewport());
+
+  const viewportObserver = new ResizeObserver(() => {
+    syncSceneViewport();
+  });
+  viewportObserver.observe(elements.canvasWrap);
 
   rebuildScene({ resetView: true });
 }

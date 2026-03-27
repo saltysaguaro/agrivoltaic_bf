@@ -24,25 +24,23 @@
   </head>
   <body class="public-visualizer-body">
     <div class="public-visualizer-page">
-      <aside class="public-visualizer-sidebar">
-        <section class="pv-panel pv-panel--hero">
-          <div class="pv-panel-header pv-panel-header--tight">
-            <div>
-              <p class="pv-eyebrow">Agrivoltaic Shade Visualizer</p>
-              <h1>55 kW system shade preview</h1>
-            </div>
+      <header class="pv-topbar">
+        <div class="pv-topbar-head">
+          <div>
+            <p class="pv-eyebrow">Agrivoltaic Shade Visualizer</p>
+            <h1 id="sceneHeading">55 kW system shade preview</h1>
           </div>
-          <p class="pv-hero-copy">Location, system, date, and time. Everything else stays locked to the standard presets.</p>
-        </section>
+          <div class="pv-toolbar">
+            <button class="pv-ghost-button" type="button" data-view-preset="rowOblique">Row View</button>
+            <button class="pv-ghost-button" type="button" data-view-preset="arrayOblique">Array View</button>
+            <button id="copyLinkButton" class="pv-ghost-button" type="button">Copy Link</button>
+            <button id="snapshotButton" class="pv-primary-button" type="button">PNG</button>
+          </div>
+        </div>
 
-        <section class="pv-panel pv-panel--controls">
-          <div class="pv-control-block">
-            <div class="pv-panel-header pv-panel-header--tight">
-              <div>
-                <p class="pv-eyebrow">Location</p>
-                <h2>Site</h2>
-              </div>
-            </div>
+        <div class="pv-controls">
+          <div class="pv-control pv-control--site">
+            <label class="pv-label" for="siteSearchInput">Location</label>
             <div class="pv-search-shell">
               <input
                 id="siteSearchInput"
@@ -53,89 +51,43 @@
               />
               <div id="siteSuggestions" class="pv-suggestion-list" role="listbox" aria-label="Location suggestions"></div>
             </div>
-            <p id="siteLookupStatus" class="pv-support-copy">Waiting for Mapbox configuration.</p>
-            <div class="pv-site-chip">
-              <div>
-                <div id="selectedSiteLabel" class="pv-site-chip__title">Golden, Colorado</div>
-                <div id="selectedSiteMeta" class="pv-site-chip__meta">39.7555, -105.2211</div>
-              </div>
-              <span id="timezoneBadge" class="pv-badge">America/Denver</span>
-            </div>
           </div>
 
-          <div class="pv-control-block">
-            <div class="pv-panel-header pv-panel-header--tight">
-              <div>
-                <p class="pv-eyebrow">System</p>
-                <h2>Configuration</h2>
-              </div>
-            </div>
+          <div class="pv-control pv-control--system">
+            <span class="pv-label">Configuration</span>
             <div id="systemSelector" class="pv-system-grid" role="radiogroup" aria-label="System type"></div>
           </div>
 
-          <div class="pv-control-block">
-            <div class="pv-panel-header pv-panel-header--tight">
-              <div>
-                <p class="pv-eyebrow">Sun</p>
-                <h2>Date and time</h2>
-              </div>
-            </div>
-            <div class="pv-inline-fields">
-              <div>
-                <label class="pv-label" for="dateInput">Date</label>
-                <input id="dateInput" class="pv-input" type="date" />
-              </div>
-              <div>
-                <label class="pv-label" for="timeInput">Time</label>
-                <input id="timeInput" class="pv-input" type="time" step="900" />
-              </div>
-            </div>
-            <div class="pv-slider-shell">
-              <div class="pv-slider-copy">
-                <span>Time</span>
-                <strong id="timeDisplay">10:00 AM</strong>
-              </div>
-              <input id="timeSlider" class="pv-slider" type="range" min="0" max="1425" step="15" value="600" />
-              <div class="pv-slider-labels" aria-hidden="true">
-                <span>12a</span>
-                <span>6a</span>
-                <span>12p</span>
-                <span>6p</span>
-                <span>12a</span>
-              </div>
-            </div>
-            <p id="solarStatus" class="pv-support-copy">Select a location to compute the sun position.</p>
+          <div class="pv-control pv-control--date">
+            <label class="pv-label" for="dateInput">Date</label>
+            <input id="dateInput" class="pv-input" type="date" />
           </div>
 
-          <div class="pv-control-block pv-control-block--summary">
-            <div class="pv-panel-header pv-panel-header--tight">
-              <div>
-                <p class="pv-eyebrow">Summary</p>
-                <h2>Scene</h2>
-              </div>
+          <div class="pv-control pv-control--time">
+            <div class="pv-control-head">
+              <label class="pv-label" for="timeInput">Hour</label>
+              <strong id="timeDisplay">10:00 AM</strong>
             </div>
-            <div id="summaryCards" class="pv-summary-grid"></div>
-            <p id="summaryNote" class="pv-note-copy">
-              These scenes are built from the same conceptual geometry used in the main visualizer.
-            </p>
-          </div>
-        </section>
-      </aside>
-
-      <main class="public-visualizer-stage">
-        <div class="pv-stage-header">
-          <div>
-            <p class="pv-eyebrow">Realtime Shade Preview</p>
-            <h2 id="sceneHeading">Agrivoltaic shade visualizer</h2>
-          </div>
-          <div class="pv-toolbar">
-            <button class="pv-ghost-button" type="button" data-view-preset="rowOblique">Row View</button>
-            <button class="pv-ghost-button" type="button" data-view-preset="arrayOblique">Array View</button>
-            <button id="copyLinkButton" class="pv-ghost-button" type="button">Copy Link</button>
-            <button id="snapshotButton" class="pv-primary-button" type="button">PNG</button>
+            <input id="timeInput" class="pv-input" type="time" step="900" />
           </div>
         </div>
 
+        <div class="pv-meta-row">
+          <div class="pv-site-chip">
+            <div class="pv-site-chip__content">
+              <span id="selectedSiteLabel" class="pv-site-chip__title">Golden, Colorado</span>
+              <span id="selectedSiteMeta" class="pv-site-chip__meta">39.7555, -105.2211</span>
+            </div>
+            <span id="timezoneBadge" class="pv-badge">America/Denver</span>
+          </div>
+          <div class="pv-meta-cluster">
+            <span id="solarStatus" class="pv-meta-copy">June 21, 10:00 AM • direct shade is active.</span>
+            <span id="siteLookupStatus" class="pv-meta-copy"></span>
+          </div>
+        </div>
+      </header>
+
+      <main class="public-visualizer-stage">
         <section class="pv-canvas-card">
           <div id="canvasWrap" class="pv-canvas-wrap">
             <div class="pv-canvas-glow"></div>

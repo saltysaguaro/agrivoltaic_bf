@@ -1,6 +1,6 @@
 import { approximateTimezoneFromLongitude } from "./solarPosition.js";
 
-const MAPBOX_IDLE_MESSAGE = "Type at least three characters to search with Mapbox.";
+const MAPBOX_IDLE_MESSAGE = "";
 
 function debounce(fn, delay = 180) {
   let timeoutId = 0;
@@ -184,10 +184,10 @@ export function mountPublicSiteLookup({
         return;
       }
 
-      statusEl.textContent = "Select a suggestion to update the scene.";
+      statusEl.textContent = "";
       renderSuggestions(suggestionsEl, suggestions, async (suggestion) => {
         await commitSelection(suggestion);
-        statusEl.textContent = `${suggestion.label} selected.`;
+        statusEl.textContent = "";
       });
     } catch (error) {
       suggestionsEl.replaceChildren();
@@ -212,7 +212,7 @@ export function mountPublicSiteLookup({
       statusEl.textContent = "Verifying address with Mapbox…";
       const site = await resolvePlace(input.value.trim());
       await commitSelection(site);
-      statusEl.textContent = `Verified with Mapbox: ${site.label}.`;
+      statusEl.textContent = "";
     } catch (error) {
       statusEl.textContent = error instanceof Error ? error.message : "Could not verify this address.";
     }
