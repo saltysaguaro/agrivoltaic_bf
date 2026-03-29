@@ -8,12 +8,24 @@ const DEFAULT_SESSION = {
   sensorSelection: null,
 };
 
+function normalizeSessionSite(site) {
+  if (!site || typeof site !== "object") return null;
+  const address = String(site.address ?? site.fullAddress ?? site.label ?? "").trim();
+  return {
+    ...site,
+    address: address || String(site.label ?? ""),
+    source: site.source || "stored",
+  };
+}
+
 function safeParse(raw) {
   if (!raw) return { ...DEFAULT_SESSION };
   try {
+    const parsed = JSON.parse(raw);
     return {
       ...DEFAULT_SESSION,
-      ...JSON.parse(raw),
+      ...parsed,
+      site: normalizeSessionSite(parsed?.site),
     };
   } catch {
     return { ...DEFAULT_SESSION };
