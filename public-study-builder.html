@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agrivoltaic Irradiance Designer | Agrivoltaic Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./platform.css" />
+    <link rel="stylesheet" href="./public-tools.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/",
+          "zod": "https://cdn.jsdelivr.net/npm/zod@3.24.2/+esm",
+          "@agrivoltaic/shared": "./packages/shared/dist/index.js",
+          "@agrivoltaic/three-exporter/browser": "./packages/three-exporter/dist/browser.js"
+        }
+      }
+    </script>
+    <script src="./public-visualizer.config.js"></script>
+  </head>
+  <body class="platform-body landing-body">
+    <div class="platform-page public-tool-page">
+      <header class="site-header">
+        <div>
+          <p class="eyebrow">Agrivoltaic Irradiance Designer</p>
+          <h1>Define the site and package inputs for irradiance modeling</h1>
+        </div>
+        <div class="design-header__actions">
+          <a class="header-link" href="./index.html">Shade Preview</a>
+          <a id="publicResultsViewerLink" class="header-link" href="./public-results-viewer.html">Results Viewer</a>
+        </div>
+      </header>
+
+      <main class="landing-shell landing-shell--setup">
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <p class="eyebrow">Project Setup</p>
+              <h2>Start a new work package</h2>
+            </div>
+          </div>
+          <p class="status-copy">
+            The designer stores the selected site, layout, and sensor plan in this browser until you export a package.
+          </p>
+          <label class="field-label" for="publicProjectName">Project name</label>
+          <input id="publicProjectName" class="platform-input" type="text" placeholder="Agrivoltaic Irradiance Study" />
+          <div class="site-actions">
+            <button id="publicLoadBundleButton" class="secondary-button" type="button">Load Work Package</button>
+            <button id="publicGoToDesignButton" class="primary-button" type="button" disabled>Open Designer</button>
+          </div>
+          <input id="publicBundleFileInput" type="file" accept=".json,application/json" hidden />
+          <p id="publicStudyStatus" class="status-copy">
+            Exported work packages can be loaded here to resume editing.
+          </p>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <p class="eyebrow">Site Setup</p>
+              <h2>Choose the project location</h2>
+            </div>
+          </div>
+          <label class="field-label" for="publicSiteAddressInput">Address or place name</label>
+          <input id="publicSiteAddressInput" class="platform-input" type="text" placeholder="Search for an address or place with Mapbox" />
+          <div id="publicSiteSuggestions" class="suggestion-list"></div>
+          <p id="publicSiteLookupStatus" class="status-copy"></p>
+
+          <label class="field-label">Preset locations</label>
+          <div class="site-preset-grid">
+            <button class="secondary-button" type="button" data-public-site-preset="golden-co">Golden, Colorado</button>
+            <button class="secondary-button" type="button" data-public-site-preset="tucson-az">Tucson, Arizona</button>
+            <button class="secondary-button" type="button" data-public-site-preset="fresno-ca">Fresno, California</button>
+          </div>
+
+          <div class="manual-grid">
+            <input id="publicManualLatitude" class="platform-input" type="number" step="0.0001" placeholder="Latitude" />
+            <input id="publicManualLongitude" class="platform-input" type="number" step="0.0001" placeholder="Longitude" />
+          </div>
+          <div class="site-actions">
+            <button id="publicManualSiteButton" class="secondary-button" type="button">Use Manual Coordinates</button>
+          </div>
+          <p id="publicSiteSummary" class="site-summary">Choose a site with Mapbox lookup, use a preset, or enter coordinates manually.</p>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./src/public/publicStudySetupPage.js"></script>
+  </body>
+</html>

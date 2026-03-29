@@ -349,12 +349,16 @@ body.public-visualizer-body {
 
 .pv-ghost-button,
 .pv-primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 42px;
   padding: 0 16px;
   border-radius: 999px;
   font: inherit;
   font-weight: 800;
   cursor: pointer;
+  text-decoration: none;
   transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
@@ -362,6 +366,12 @@ body.public-visualizer-body {
   border: 1px solid rgba(31, 39, 31, 0.12);
   background: rgba(255, 253, 249, 0.78);
   color: var(--pv-ink);
+}
+
+.pv-tool-link {
+  border-color: rgba(47, 94, 74, 0.26);
+  background: rgba(47, 94, 74, 0.12);
+  color: #184636;
 }
 
 .pv-ghost-button.is-active {

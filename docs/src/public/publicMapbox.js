@@ -88,11 +88,11 @@ async function mapboxErrorMessage(response) {
   if (response.status === 403) {
     const origin = window.location.origin;
     const hint = [
-      "Mapbox rejected the public token (403).",
-      "Confirm the token allows geocoding/search requests and that its allowed URL list includes",
+      "Address lookup is not authorized for this site (403).",
+      "Confirm the token allows geocoding requests and that its allowed URL list includes",
       origin,
       "exactly.",
-      "Browsers only send the origin on this cross-site request, so a path-only restriction like",
+      "A path-only restriction such as",
       `${origin}${window.location.pathname}`,
       "will not match by itself.",
     ].join(" ");
@@ -101,8 +101,8 @@ async function mapboxErrorMessage(response) {
 
   if (response.status === 401) {
     return detail
-      ? `Mapbox rejected the token (401). ${detail}`
-      : "Mapbox rejected the token (401). Check that the published config contains the current public token.";
+      ? `Address lookup key rejected the request (401). ${detail}`
+      : "Address lookup key rejected the request (401).";
   }
 
   return detail
@@ -210,7 +210,7 @@ export function mountPublicSiteLookup({
   const fetchSuggestions = debounce(async () => {
     const query = input.value.trim();
     if (!token) {
-      statusEl.textContent = "Add a public Mapbox token in `public-visualizer.config.js` to enable address search.";
+      statusEl.textContent = "Address lookup is unavailable in this deployment.";
       suggestionsEl.replaceChildren();
       return;
     }
@@ -226,7 +226,7 @@ export function mountPublicSiteLookup({
       const suggestions = await searchPlaces(query);
       if (!suggestions.length) {
         suggestionsEl.replaceChildren();
-        statusEl.textContent = `No Mapbox matches for "${query}". Press Enter to verify the full address.`;
+        statusEl.textContent = `No matches found for "${query}". Press Enter to verify the full address.`;
         return;
       }
 
@@ -266,7 +266,7 @@ export function mountPublicSiteLookup({
 
   if (!token) {
     input.disabled = true;
-    statusEl.textContent = "Add a public Mapbox token in `public-visualizer.config.js` to enable address search.";
+    statusEl.textContent = "Address lookup is unavailable in this deployment.";
   } else {
     input.disabled = false;
     statusEl.textContent = MAPBOX_IDLE_MESSAGE;

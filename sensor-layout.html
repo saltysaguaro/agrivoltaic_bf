@@ -32,7 +32,7 @@
       </div>
       <div class="design-header__actions">
         <a class="header-link" href="/design.html">Back to Design</a>
-        <button id="exportSensorViewButton" class="secondary-button" type="button">Export View</button>
+        <button id="exportSensorViewButton" class="secondary-button" type="button">Export PNG</button>
       </div>
     </header>
 
@@ -50,7 +50,7 @@
 
         <div class="field-inline-grid">
           <div>
-            <label class="field-label" for="sensorAcrossCountInput">Sensors between rows</label>
+            <label class="field-label" for="sensorAcrossCountInput">Sensors per row pitch</label>
             <input id="sensorAcrossCountInput" class="platform-input" type="number" min="2" max="40" step="1" value="10" />
           </div>
           <div>
@@ -72,12 +72,13 @@
 
         <div class="sensor-preset-grid">
           <button class="secondary-button" type="button" data-preset="all">All Sensors</button>
-          <button class="secondary-button" type="button" data-preset="allCurrent">All Sensors at Current Height</button>
-          <button class="secondary-button" type="button" data-preset="withinArray">All Sensors Within the Array</button>
-          <button class="secondary-button" type="button" data-preset="withinArrayCurrent">Within the Array at Current Height</button>
+          <button class="secondary-button" type="button" data-preset="allHeights">All Sensors at All Heights</button>
+          <button class="secondary-button" type="button" data-preset="withinArray">Sensors Within the Array</button>
+          <button class="secondary-button" type="button" data-preset="withinArrayAllHeights">Sensors Within the Array at All Heights</button>
           <button class="secondary-button" type="button" data-preset="middleRow">Entire Middle Row</button>
+          <button class="secondary-button" type="button" data-preset="middleRowAllHeights">Entire Middle Row at All Heights</button>
           <button class="secondary-button" type="button" data-preset="centerSquare">Centered Square</button>
-          <button class="secondary-button" type="button" data-preset="centerSquareCurrent">Centered Square at Current Height</button>
+          <button class="secondary-button" type="button" data-preset="centerSquareAllHeights">Centered Square at All Heights</button>
           <button id="resetSensorSelectionButton" class="secondary-button" type="button">Reset All Selected Sensors</button>
         </div>
 

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Irradiance Results Viewer | Agrivoltaic Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./platform.css" />
+    <link rel="stylesheet" href="./public-tools.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/",
+          "zod": "https://cdn.jsdelivr.net/npm/zod@3.24.2/+esm",
+          "@agrivoltaic/shared": "./packages/shared/dist/index.js",
+          "@agrivoltaic/three-exporter/browser": "./packages/three-exporter/dist/browser.js"
+        }
+      }
+    </script>
+  </head>
+  <body class="platform-body results-body">
+    <header class="results-header">
+      <div>
+        <p class="eyebrow">Irradiance Results Viewer</p>
+        <h1>Irradiance visualization</h1>
+        <p id="resultsStatus" class="header-subtitle">Upload exported results to begin.</p>
+      </div>
+      <div class="design-header__actions">
+        <a id="publicResultsShadePreviewLink" class="header-link" href="./index.html">Shade Preview</a>
+        <a id="publicResultsStudyBuilderLink" class="header-link" href="./public-study-builder.html">Irradiance Designer</a>
+        <button id="exportResultsViewButton" class="secondary-button" type="button">Export PNG</button>
+      </div>
+    </header>
+
+    <main class="results-shell">
+      <aside class="results-controls card">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">Upload</p>
+            <h2>Load modeled results</h2>
+          </div>
+        </div>
+
+        <p id="publicResultsUploadHint" class="status-copy">
+          Upload one exported results bundle JSON, or upload both <span class="mono">irradiance-results.json</span> and <span class="mono">request.json</span> from a completed package.
+        </p>
+        <div class="site-actions">
+          <button id="publicResultsLoadButton" class="primary-button" type="button">Choose JSON Files</button>
+        </div>
+        <input id="publicResultsFilesInput" type="file" accept=".json,application/json" multiple hidden />
+        <p id="publicResultsSourceSummary" class="site-summary">No results loaded yet.</p>
+
+        <label class="field-label" for="metricSelect">Metric</label>
+        <select id="metricSelect" class="platform-input"></select>
+
+        <label class="field-label" for="heightSelect">Height plane</label>
+        <select id="heightSelect" class="platform-input"></select>
+
+        <label class="field-label" for="startMonthSelect">Start month</label>
+        <select id="startMonthSelect" class="platform-input"></select>
+
+        <label class="field-label" for="endMonthSelect">End month</label>
+        <select id="endMonthSelect" class="platform-input"></select>
+
+        <label class="field-label" for="resultsOpacityRange">PV opacity <span id="resultsOpacityValue">100%</span></label>
+        <input id="resultsOpacityRange" class="range-input" type="range" min="0" max="100" step="1" value="100" />
+
+        <div class="view-preset-grid">
+          <button class="secondary-button" type="button" data-view-preset="rowOblique">Zoom to One Row</button>
+          <button class="secondary-button" type="button" data-view-preset="rowNadir">One Row Nadir</button>
+          <button class="secondary-button" type="button" data-view-preset="arrayOblique">Zoom to Whole Array</button>
+          <button class="secondary-button" type="button" data-view-preset="arrayNadir">Whole Array Nadir</button>
+        </div>
+      </aside>
+
+      <section class="results-viewport card">
+        <div class="results-viewport__canvas">
+          <canvas id="resultsCanvas"></canvas>
+          <div id="resultsHoverCard" class="results-hover-card" hidden></div>
+        </div>
+        <div class="results-viewport__legend">
+          <div class="legend-heading">
+            <h3>Heatmap legend</h3>
+            <span id="legendUnits"></span>
+          </div>
+          <div id="resultsLegend" class="legend legend--horizontal"></div>
+        </div>
+        <div class="results-info">
+          <div class="card-header">
+            <div>
+              <p class="eyebrow">Results Summary</p>
+              <h2>Current slice snapshot</h2>
+            </div>
+            <p class="card-hint">Updates with the selected metric, height, and date range.</p>
+          </div>
+          <div id="resultsStats" class="results-stats"></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./src/public/publicResultsViewerPage.js"></script>
+  </body>
+</html>

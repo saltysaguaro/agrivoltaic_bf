@@ -9,6 +9,12 @@ const DEFAULT_SYSTEM_TYPE = "fixed";
 const DEFAULT_MONTH_DAY = "06-21";
 const DEFAULT_MINUTES_IN_DAY = 10 * 60;
 
+function defaultViewPresetForSystem(systemType) {
+  return systemType === "fixed" || systemType === "raised"
+    ? "rowOblique"
+    : "arrayOblique";
+}
+
 function validSystemType(value) {
   return SYSTEM_TYPE_OPTIONS.some((option) => option.value === value);
 }
@@ -40,6 +46,7 @@ export function stateFromQuery(defaultSite, locationSearch = window.location.sea
   const nowParts = getCurrentZonedDateTime(timeZone);
   const defaultYear = String(nowParts.dateInput).slice(0, 4) || String(new Date().getFullYear());
   const timeValue = params.get("time");
+  const systemType = validSystemType(params.get("system")) ? params.get("system") : DEFAULT_SYSTEM_TYPE;
 
   return {
     site: {
@@ -47,9 +54,9 @@ export function stateFromQuery(defaultSite, locationSearch = window.location.sea
       timezone: timeZone,
       timezoneApproximate: Boolean(querySite.timezoneApproximate),
     },
-    systemType: validSystemType(params.get("system")) ? params.get("system") : DEFAULT_SYSTEM_TYPE,
+    systemType,
     dateInput: params.get("date") || `${defaultYear}-${DEFAULT_MONTH_DAY}`,
     minutesInDay: timeValue ? parseTimeInput(timeValue) : DEFAULT_MINUTES_IN_DAY,
-    viewPreset: params.get("view") || "arrayOblique",
+    viewPreset: params.get("view") || defaultViewPresetForSystem(systemType),
   };
 }

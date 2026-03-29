@@ -44,3 +44,19 @@ test("explicit coordinates in the URL override the default site", async () => {
   assert.equal(state.site.timezone, "America/Phoenix");
   assert.equal(state.site.label, "Tucson, Arizona");
 });
+
+test("fixed and raised systems default the public preview to row view when no view query is supplied", async () => {
+  const { stateFromQuery } = await loadStateModule();
+  const defaultSite = {
+    label: "Golden, Colorado",
+    fullAddress: "Golden, Colorado, United States",
+    latitude: 39.7555,
+    longitude: -105.2211,
+    timezone: "America/Denver",
+    timezoneApproximate: false,
+  };
+
+  assert.equal(stateFromQuery(defaultSite, "?system=fixed").viewPreset, "rowOblique");
+  assert.equal(stateFromQuery(defaultSite, "?system=raised").viewPreset, "rowOblique");
+  assert.equal(stateFromQuery(defaultSite, "?system=sat").viewPreset, "arrayOblique");
+});

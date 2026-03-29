@@ -1,0 +1,82 @@
+.public-tool-page {
+  padding-bottom: 40px;
+}
+
+.public-tool-page .status-copy .mono,
+.public-tool-page .site-summary .mono,
+.results-body .status-copy .mono {
+  font-family: "SFMono-Regular", "SFMono-Regular", ui-monospace, monospace;
+}
+
+.public-tool-page .manual-grid {
+  margin-top: 18px;
+}
+
+.designer-solar-card .field-inline-grid {
+  align-items: start;
+  gap: 14px;
+}
+
+.designer-solar-field {
+  min-width: 0;
+}
+
+.designer-solar-field--time {
+  display: grid;
+  gap: 8px;
+}
+
+.designer-time-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.designer-time-head strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #234939;
+}
+
+.designer-time-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(35, 73, 57, 0.58);
+}
+
+.designer-solar-card .card-hint {
+  margin-top: 12px;
+}
+
+.results-body .status-copy .mono {
+  font-weight: 600;
+}
+
+@media (max-width: 1260px) {
+  body.design-body .app-shell {
+    grid-template-columns: minmax(272px, 320px) 1fr minmax(272px, 320px);
+    grid-template-rows: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .landing-shell--setup {
+    grid-template-columns: 1fr;
+  }
+
+  body.design-body .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .designer-solar-card .field-inline-grid {
+    grid-template-columns: 1fr;
+  }
+}

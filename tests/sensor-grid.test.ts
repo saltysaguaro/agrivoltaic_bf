@@ -253,10 +253,17 @@ test("uniform fullArrayGrid spans the full array footprint and optional farming 
   const paddedFirst = paddedGrid.sensors.find((sensor) => sensor.indices[0] === 0 && sensor.indices[1] === 0 && sensor.indices[2] === 0)!;
   const paddedLast = paddedGrid.sensors.find((sensor) => sensor.indices[0] === 0 && sensor.indices[1] === paddedGrid.dimensions[1] - 1 && sensor.indices[2] === 0)!;
   const crossStep = second.position.y - first.position.y;
+  const firstGapCount = grid.sensors.filter((sensor) => {
+    return sensor.indices[0] === 0
+      && sensor.indices[2] === 0
+      && sensor.position.y > -4.5
+      && sensor.position.y < -1.5;
+  }).length;
 
-  assert.ok(Math.abs(crossStep - 0.3) < 1e-6);
-  assert.ok(first.position.y < -4.5);
-  assert.ok(last.position.y > 4.5);
+  assert.ok(Math.abs(crossStep - (1 / 3)) < 1e-6);
+  assert.equal(firstGapCount, 8);
+  assert.equal(Number(first.position.y.toFixed(6)), -4.5);
+  assert.equal(Number(last.position.y.toFixed(6)), 4.5);
   assert.ok(paddedGrid.dimensions[1] > grid.dimensions[1]);
   assert.ok(paddedFirst.position.y < first.position.y);
   assert.ok(paddedLast.position.y > last.position.y);

@@ -3,6 +3,40 @@ import { TileGrid } from "./tileGrid.js";
 import { HeatmapOverlay } from "./heatmapOverlay.js";
 import { DEFAULT_TILE_DIVISIONS_PER_ROW } from "../utils/constants.js";
 
+const NORTH_ARROW_GAP_M = 3.048;
+const NORTH_ARROW_COLOR = 0x214f35;
+const NORTH_ARROW_LABEL_OFFSET = 0.74;
+
+function createNorthLabelTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "rgba(248, 247, 242, 0.92)";
+  ctx.beginPath();
+  ctx.arc(canvas.width / 2, canvas.height / 2, 94, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(32, 72, 50, 0.2)";
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  ctx.arc(canvas.width / 2, canvas.height / 2, 94, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = `#${NORTH_ARROW_COLOR.toString(16).padStart(6, "0")}`;
+  ctx.font = '700 148px "Manrope", sans-serif';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("N", canvas.width / 2, canvas.height / 2 + 8);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 export class GroundSystem {
   constructor(scene) {
     this.tileGrid = new TileGrid();
@@ -15,6 +49,29 @@ export class GroundSystem {
       roughness: 1,
       metalness: 0,
     });
+    this.northArrowMaterial = new THREE.MeshStandardMaterial({
+      color: NORTH_ARROW_COLOR,
+      roughness: 0.74,
+      metalness: 0.08,
+    });
+    this.northArrowLabelMaterial = new THREE.MeshBasicMaterial({
+      map: createNorthLabelTexture(),
+      transparent: true,
+      depthWrite: false,
+    });
+    this.northArrowGroup = new THREE.Group();
+    this.northArrowGroup.name = "ground-north-arrow";
+    this.northArrowGroup.visible = false;
+
+    const label = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.62), this.northArrowLabelMaterial);
+    label.name = "ground-north-arrow-label";
+    label.userData.simulationKind = "north_marker";
+    label.rotation.x = -Math.PI / 2;
+    label.position.set(0, 0.03, -NORTH_ARROW_LABEL_OFFSET);
+    label.renderOrder = 4;
+    label.castShadow = false;
+    label.receiveShadow = false;
+    this.northArrowGroup.add(label);
 
     for (let index = 0; index < 4; index++) {
       const pad = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), this.contextMaterial);
@@ -29,6 +86,7 @@ export class GroundSystem {
     }
 
     this.group.add(this.contextGroup);
+    this.contextGroup.add(this.northArrowGroup);
     this.group.add(this.heatmap.mesh);
     scene.add(this.group);
   }
@@ -60,6 +118,7 @@ export class GroundSystem {
   updateContextPads(state, summary) {
     if (!summary) {
       for (const pad of this.contextPads) pad.visible = false;
+      this.northArrowGroup.visible = false;
       return;
     }
 
@@ -85,6 +144,33 @@ export class GroundSystem {
       pad.scale.set(config.width, config.depth, 1);
       pad.position.set(config.x, 0, config.z);
     }
+
+    this.updateNorthArrow(state, {
+      innerWidth,
+      innerDepth,
+      halfGround,
+    });
+  }
+
+  updateNorthArrow(state, { innerWidth, innerDepth, halfGround }) {
+    const northPadDepth = Math.max(0, halfGround - (innerDepth / 2));
+    const availableDepth = northPadDepth - NORTH_ARROW_GAP_M;
+    const minimumDepth = 1.8;
+    if (availableDepth < minimumDepth) {
+      this.northArrowGroup.visible = false;
+      return;
+    }
+
+    const arrowLength = Math.min(
+      Math.max(2.8, availableDepth * 0.52),
+      Math.max(3.6, Math.min(8, innerWidth * 0.18)),
+    );
+    const arrowScale = arrowLength;
+    const labelCenterZ = (innerDepth / 2) + NORTH_ARROW_GAP_M + (NORTH_ARROW_LABEL_OFFSET * arrowScale);
+
+    this.northArrowGroup.visible = true;
+    this.northArrowGroup.scale.setScalar(arrowScale);
+    this.northArrowGroup.position.set(0, 0, labelCenterZ);
   }
 
   getTileDescriptor() {

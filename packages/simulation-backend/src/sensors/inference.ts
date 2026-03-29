@@ -129,6 +129,14 @@ function rowCountForLength(length: number, targetSpacing: number, minimumCount: 
   return Math.max(minimumCount, Math.round(length / targetSpacing) + 1);
 }
 
+function paddingCellsForLength(length: number, cellSize: number): number {
+  if (length <= 1e-6 || cellSize <= 1e-6) {
+    return 0;
+  }
+
+  return Math.max(0, Math.ceil(length / cellSize));
+}
+
 function createGridFromRowPair(
   analysis: FullArrayAnalysis,
   rowPair: RowPairDescriptor,
@@ -233,7 +241,7 @@ function createUniformArrayGridFromArray(
     ...DEFAULT_SENSOR_MARGINS,
     ...config.margins,
   };
-  const [baseRowCount, crossCellsPerPitch, heightCount] = config.dimensions;
+  const [baseRowCount, crossPointsPerPitch, heightCount] = config.dimensions;
   const firstRow = arrayRows[0]!;
   const lastRow = arrayRows.at(-1)!;
   const crossIntervals = arrayRows.length - 1;
@@ -242,20 +250,19 @@ function createUniformArrayGridFromArray(
     throw new Error(`Array ${array.arrayId} produced a non-positive row-center span for uniform sensor placement`);
   }
 
-  const baseCrossCount = Math.max(1, crossIntervals * Math.max(1, crossCellsPerPitch));
-  const cellSize = rowCenterSpan / baseCrossCount;
+  const pointsPerPitch = Math.max(2, crossPointsPerPitch);
+  const baseCrossCount = Math.max(2, (crossIntervals * Math.max(1, pointsPerPitch - 1)) + 1);
+  const cellSize = rowCenterSpan / Math.max(1, baseCrossCount - 1);
   const alongMin = Math.min(...arrayRows.map((row) => row.alongMin)) - margins.rowPadding;
   const alongMax = Math.max(...arrayRows.map((row) => row.alongMax)) + margins.rowPadding;
-  const crossMin = Math.min(...arrayRows.map((row) => row.crossMin)) - margins.outerRowPadding;
-  const crossMax = Math.max(...arrayRows.map((row) => row.crossMax)) + margins.outerRowPadding;
   const requestedAlongLength = Math.max(0, alongMax - alongMin);
-  const requestedCrossLength = Math.max(cellSize, crossMax - crossMin);
   const rowCount = Math.max(baseRowCount, Math.ceil(requestedAlongLength / Math.max(cellSize, 1e-6)));
-  const crossCount = Math.max(baseCrossCount, Math.ceil(requestedCrossLength / Math.max(cellSize, 1e-6)));
+  const outerPaddingCells = paddingCellsForLength(margins.outerRowPadding, cellSize);
+  const crossCount = Math.max(2, baseCrossCount + (outerPaddingCells * 2));
   const lengthRow = Math.max(cellSize, rowCount * cellSize);
-  const lengthCross = Math.max(cellSize, crossCount * cellSize);
+  const lengthCross = Math.max(cellSize, Math.max(1, crossCount - 1) * cellSize);
   const centerAlong = (alongMin + alongMax) * 0.5;
-  const centerCross = (crossMin + crossMax) * 0.5;
+  const centerCross = (firstRow.centerCross + lastRow.centerCross) * 0.5;
   const groundElevation = config.groundElevation ?? Math.min(0, ...arrayRows.map((row) => row.bounds.min.z), array.bounds.min.z);
   const defaultTopZ = Math.min(...arrayRows.map((row) => row.undersideZ));
   const arrayTopZ = Math.max(...arrayRows.map((row) => row.maxZ));
@@ -307,7 +314,7 @@ function createUniformArrayGridFromArray(
     bayCount: totalCount,
     placement: {
       row: "cellCenter",
-      cross: "cellCenter",
+      cross: "boundary",
       up: "boundary",
     },
   });
@@ -390,7 +397,7 @@ export function inferSensorGridVolumes(
       : config.mode === "centralRowGrid"
         ? ["Central Row mode selected one representative interior row pair and extended sampling across the full central crop row."]
         : config.fullArrayTilingStrategy === "uniformArrayGrid"
-          ? ["Full Array mode generated one uniform lattice across the full array footprint with 10 cells between adjacent PV row centers."]
+          ? ["Full Array mode generated one uniform lattice across the full array footprint with the requested center-to-center sensor points between adjacent PV row centers."]
           : ["Full Array mode generated one full-row 3D sampling lattice per inferred adjacent row pair."],
   };
 }

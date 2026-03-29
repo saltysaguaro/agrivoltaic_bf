@@ -5,11 +5,13 @@ import {
   computeSolarPosition,
   formatTimeInput,
   formatTimeLabel,
+  parseTimeInput,
   resolveSiteTimeZone,
   roundMinutes,
 } from "./solarPosition.js";
 import { mountPublicSiteLookup, normalizeConfiguredSite } from "./publicMapbox.js";
 import { stateFromQuery } from "./publicVisualizerState.js";
+import { createDirectionDebugOverlay } from "../scene/directionDebugOverlay.js";
 
 const SYSTEM_DESCRIPTIONS = {
   fixed: "Fixed tilt",
@@ -110,17 +112,24 @@ function parseControlMinutes(value) {
   return roundMinutes(parseTimeInput(value));
 }
 
+function directionDebugEnabled() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("debugDirections") === "1";
+}
+
 async function bootPublicVisualizer() {
   const config = window.AGRIVOLTAIC_PUBLIC_CONFIG || {};
   const elements = queryElements();
   const initial = stateFromQuery(normalizeConfiguredSite(config.defaultSite));
   const sceneApp = createSceneApp({
     canvas: elements.canvas,
+    previewMirrorEastWest: true,
   });
 
   const state = {
     ...initial,
   };
+  const showDirectionDebug = directionDebugEnabled();
 
   let sceneState = null;
   let sceneSummary = null;
@@ -170,6 +179,15 @@ async function bootPublicVisualizer() {
     );
     sceneSummary = sceneApp.rebuildSystem(sceneState);
     sceneApp.updateLighting(sceneState);
+    if (showDirectionDebug) {
+      sceneApp.setVisualizationOverlay(createDirectionDebugOverlay({
+        sceneSummary,
+        systemRoot: sceneApp.getSystemRoot(),
+        sunPosition: sceneApp.getScene().getObjectByName("scene-sun")?.position ?? null,
+      }));
+    } else {
+      sceneApp.clearVisualizationOverlay();
+    }
     sceneApp.resize();
     if (applyViewPreset) {
       sceneApp.setViewPreset(sceneState, state.viewPreset);
@@ -180,8 +198,8 @@ async function bootPublicVisualizer() {
     renderViewButtons(elements.viewButtons, state.viewPreset);
 
     elements.solarStatus.textContent = solar.isDaylight
-      ? `${solar.localDateTimeLabel} • shade active`
-      : `${solar.localDateTimeLabel} • sun below horizon`;
+      ? `${solar.localDateTimeLabel} • shade active${showDirectionDebug ? " • direction debug active" : ""}`
+      : `${solar.localDateTimeLabel} • sun below horizon${showDirectionDebug ? " • direction debug active" : ""}`;
 
     syncSceneViewport();
   }

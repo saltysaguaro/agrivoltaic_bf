@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agrivoltaic Irradiance Designer | Agrivoltaic Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./platform.css" />
+    <link rel="stylesheet" href="./public-tools.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/",
+          "zod": "https://cdn.jsdelivr.net/npm/zod@3.24.2/+esm",
+          "@agrivoltaic/shared": "./packages/shared/dist/index.js",
+          "@agrivoltaic/three-exporter/browser": "./packages/three-exporter/dist/browser.js"
+        }
+      }
+    </script>
+  </head>
+  <body class="platform-body results-body">
+    <header class="results-header">
+      <div>
+        <p class="eyebrow">Agrivoltaic Irradiance Designer</p>
+        <h1>Select irradiance sensors</h1>
+        <p id="sensorLayoutStatus" class="header-subtitle">Loading the sensor lattice...</p>
+      </div>
+      <div class="design-header__actions">
+        <a class="header-link" href="./public-study-design.html">Back to Design</a>
+        <a class="header-link" href="./public-results-viewer.html">Results Viewer</a>
+        <button id="exportSensorViewButton" class="secondary-button" type="button">Export PNG</button>
+      </div>
+    </header>
+
+    <main class="results-shell">
+      <aside class="results-controls card">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">Controls</p>
+            <h2>Sensor plan</h2>
+          </div>
+        </div>
+
+        <label class="field-label" for="sensorHeightSelect">Height plane</label>
+        <select id="sensorHeightSelect" class="platform-input"></select>
+
+        <div class="field-inline-grid">
+          <div>
+            <label class="field-label" for="sensorAcrossCountInput">Sensors per row pitch</label>
+            <input id="sensorAcrossCountInput" class="platform-input" type="number" min="2" max="40" step="1" value="10" />
+          </div>
+          <div>
+            <label class="field-label" for="sensorHeightCountInput">Number of heights</label>
+            <input id="sensorHeightCountInput" class="platform-input" type="number" min="1" max="12" step="1" value="3" />
+          </div>
+        </div>
+
+        <label class="field-label">Modeling quality</label>
+        <div class="quality-preset-grid" role="group" aria-label="Modeling quality presets">
+          <button class="secondary-button quality-preset-button" type="button" data-quality-preset="low">Low</button>
+          <button class="secondary-button quality-preset-button" type="button" data-quality-preset="medium">Medium</button>
+          <button class="secondary-button quality-preset-button" type="button" data-quality-preset="high">High</button>
+        </div>
+        <p id="simulationQualityHint" class="card-hint">Balanced ray tracing for design-stage studies.</p>
+
+        <label class="field-label" for="sensorOpacityRange">PV opacity <span id="sensorOpacityValue">100%</span></label>
+        <input id="sensorOpacityRange" class="range-input" type="range" min="0" max="100" step="1" value="100" />
+
+        <div class="sensor-preset-grid">
+          <button class="secondary-button" type="button" data-preset="all">All Sensors</button>
+          <button class="secondary-button" type="button" data-preset="allHeights">All Sensors at All Heights</button>
+          <button class="secondary-button" type="button" data-preset="withinArray">Sensors Within the Array</button>
+          <button class="secondary-button" type="button" data-preset="withinArrayAllHeights">Sensors Within the Array at All Heights</button>
+          <button class="secondary-button" type="button" data-preset="middleRow">Entire Middle Row</button>
+          <button class="secondary-button" type="button" data-preset="middleRowAllHeights">Entire Middle Row at All Heights</button>
+          <button class="secondary-button" type="button" data-preset="centerSquare">Centered Square</button>
+          <button class="secondary-button" type="button" data-preset="centerSquareAllHeights">Centered Square at All Heights</button>
+          <button id="resetSensorSelectionButton" class="secondary-button" type="button">Reset All Selected Sensors</button>
+        </div>
+
+        <div id="sensorSelectionStats" class="results-stats"></div>
+
+        <div class="site-actions">
+          <button id="downloadStudyBundleButton" class="primary-button" type="button">Download Work Package</button>
+        </div>
+      </aside>
+
+      <section class="results-viewport card">
+        <div class="results-viewport__canvas">
+          <canvas id="sensorLayoutCanvas"></canvas>
+          <div id="sensorSelectionHoverCard" class="results-hover-card" hidden></div>
+        </div>
+        <div class="view-preset-grid view-preset-grid--inline">
+          <button class="secondary-button" type="button" data-view-preset="rowOblique">Zoom to One Row</button>
+          <button class="secondary-button" type="button" data-view-preset="rowNadir">One Row Nadir</button>
+          <button class="secondary-button" type="button" data-view-preset="arrayOblique">Zoom to Whole Array</button>
+          <button class="secondary-button" type="button" data-view-preset="arrayNadir">Whole Array Nadir</button>
+        </div>
+        <div class="results-viewport__legend">
+          <div class="legend-heading">
+            <h3>Selection legend</h3>
+            <span id="sensorLegendUnits">Click sensors or use presets</span>
+          </div>
+          <div class="selection-legend">
+            <span class="selection-chip selection-chip--unselected">Available sensor</span>
+            <span class="selection-chip selection-chip--selected">Selected for export</span>
+          </div>
+        </div>
+        <div class="results-info">
+          <div class="card-header">
+            <div>
+              <p class="eyebrow">Selection Summary</p>
+              <h2>Current sensor plan</h2>
+            </div>
+            <p class="card-hint">Only the selected red sensors will be included in the export package.</p>
+          </div>
+          <div id="sensorSelectionInfo" class="results-stats"></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./src/public/publicStudySensorPage.js"></script>
+  </body>
+</html>

@@ -121,14 +121,14 @@ function makeRectLine(width, depth, y, material) {
   return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), material);
 }
 
-function frameSceneToObject(camera, controls, lightRig, object) {
+function frameSceneToObject(camera, controls, lightRig, object, syncControlsUp) {
   const box = new THREE.Box3().setFromObject(object);
   if (!Number.isFinite(box.min.x) || !Number.isFinite(box.max.x)) return;
 
-  frameSceneToBounds(camera, controls, lightRig, box);
+  frameSceneToBounds(camera, controls, lightRig, box, undefined, undefined, syncControlsUp);
 }
 
-function frameSceneToBounds(camera, controls, lightRig, box, directionInput) {
+function frameSceneToBounds(camera, controls, lightRig, box, directionInput, upInput = new THREE.Vector3(0, 1, 0), syncControlsUp) {
   if (!box || !Number.isFinite(box.min.x) || !Number.isFinite(box.max.x)) return;
 
   const size = new THREE.Vector3();
@@ -143,6 +143,11 @@ function frameSceneToBounds(camera, controls, lightRig, box, directionInput) {
   const distance = maxDim * 1.15 + 12;
 
   camera.position.copy(center).addScaledVector(direction, distance);
+  if (syncControlsUp) {
+    controls = syncControlsUp(upInput);
+  } else {
+    camera.up.copy(upInput);
+  }
   controls.target.copy(center);
   controls.minDistance = 6;
   controls.maxDistance = Math.max(180, maxDim * 6.5);
@@ -157,11 +162,11 @@ function frameSceneToBounds(camera, controls, lightRig, box, directionInput) {
   lightRig.sun.shadow.camera.updateProjectionMatrix();
 }
 
-function frameSceneToPoints(camera, controls, lightRig, points, direction) {
+function frameSceneToPoints(camera, controls, lightRig, points, direction, upInput, syncControlsUp) {
   if (!Array.isArray(points) || !points.length) return;
   const box = new THREE.Box3();
   points.forEach((point) => box.expandByPoint(point));
-  frameSceneToBounds(camera, controls, lightRig, box, direction);
+  frameSceneToBounds(camera, controls, lightRig, box, direction, upInput, syncControlsUp);
 }
 
 function updateCameraClipping(camera, controls, sceneSpan = 60) {
@@ -198,10 +203,29 @@ function updateShadowFrustum(lightRig, summary) {
   lightRig.sun.shadow.camera.updateProjectionMatrix();
 }
 
+const TOP_DOWN_NORTH_UP = new THREE.Vector3(0, 0, 1);
+
+function usesEastFacingRowView(state) {
+  return state?.systemType === "fixed"
+    || (state?.systemType === "raised" && !state?.pergolaTracking);
+}
+
+function defaultPresetForState(state) {
+  return usesEastFacingRowView(state)
+    ? "rowOblique"
+    : "arrayOblique";
+}
+
 function defaultObliqueDirection(state) {
-  return state?.systemType === "sat"
-    ? new THREE.Vector3(0.78, 0.5, 0.82).normalize()
-    : new THREE.Vector3(0.86, 0.56, 0.42).normalize();
+  return new THREE.Vector3(0, 0.54, -0.84).normalize();
+}
+
+function eastFacingRowDirection(alongWorldAxis) {
+  return alongWorldAxis.clone()
+    .normalize()
+    .multiplyScalar(0.84)
+    .add(new THREE.Vector3(0, 0.54, 0))
+    .normalize();
 }
 
 function representativeCropRow(summary) {
@@ -260,14 +284,14 @@ function systemBounds(object) {
   return bounds;
 }
 
-export function createSceneApp({ canvas }) {
+export function createSceneApp({ canvas, previewMirrorEastWest = false }) {
   const renderer = createRenderer(canvas);
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xe7ece5);
   scene.fog = new THREE.Fog(0xe7ece5, 150, 620);
 
   const camera = createCamera();
-  const controls = createSceneControls(camera, canvas);
+  let controls = createSceneControls(camera, canvas);
   const lightRig = createLightRig(scene);
   const materials = createMaterials();
   const groundSystem = new GroundSystem(scene);
@@ -286,6 +310,27 @@ export function createSceneApp({ canvas }) {
   let currentState = null;
   let currentSystemOpacity = 1;
 
+  function syncControlsUp(upInput = new THREE.Vector3(0, 1, 0)) {
+    const nextUp = upInput.clone().normalize();
+    const target = controls.target.clone();
+    const minDistance = controls.minDistance;
+    const maxDistance = controls.maxDistance;
+
+    controls.dispose();
+    camera.up.copy(nextUp);
+    camera.updateMatrixWorld();
+    controls = createSceneControls(camera, canvas);
+    controls.target.copy(target);
+    controls.minDistance = minDistance;
+    controls.maxDistance = maxDistance;
+    return controls;
+  }
+
+  function resetCameraTransform() {
+    camera.scale.set(1, 1, 1);
+    syncControlsUp(new THREE.Vector3(0, 1, 0));
+  }
+
   function resize() {
     const wrap = canvas.parentElement;
     if (!wrap) return;
@@ -298,7 +343,9 @@ export function createSceneApp({ canvas }) {
   }
 
   function updateLighting(state) {
-    updateSun(lightRig, state);
+    updateSun(lightRig, previewMirrorEastWest
+      ? { ...state, previewMirrorEastWest: true }
+      : state);
   }
 
   function updateGround(state) {
@@ -365,42 +412,21 @@ export function createSceneApp({ canvas }) {
 
   function setDefaultView(state) {
     if (!currentSceneSummary) return;
-    const targetHeight = state.systemType === "raised"
-      ? Math.max(3.0, state.heightM + 0.65)
-      : state.systemType === "vertical"
-        ? Math.max(1.8, state.heightM + (currentSceneSummary.layout.tableSpec.stackSpan * 0.35))
-        : 1.8;
-
-    const focusRowCount = Math.min(Math.max(currentSceneSummary.rowCount, 1), 5);
-    const focusTableCount = Math.min(Math.max(currentSceneSummary.tablesPerRow, 1), 7);
-    const focusCrossSpan = currentSceneSummary.layout.crossAxisFootprint
-      + (Math.max(0, focusRowCount - 1) * currentSceneSummary.rowPitch);
-    const focusAlongSpan = currentSceneSummary.layout.tableSpec.tableLength
-      + (Math.max(0, focusTableCount - 1) * currentSceneSummary.layout.tableSpan);
-    const focusSpan = Math.max(12, focusCrossSpan, focusAlongSpan);
-    const direction = defaultObliqueDirection(state);
-
-    const target = new THREE.Vector3(0, targetHeight, 0);
-    const distance = (focusSpan * 1.18) + 8.5;
-    camera.position.copy(target).addScaledVector(direction, distance);
-    controls.target.copy(target);
-    controls.minDistance = 6;
-    controls.maxDistance = Math.max(180, Math.max(currentSceneSummary.arrayW, currentSceneSummary.arrayD, 18) * 6.5);
-    controls.update();
-    updateShadowFrustum(lightRig, currentSceneSummary);
-    updateCameraClipping(camera, controls, getSceneSpan(state, currentSceneSummary));
+    setViewPreset(state, defaultPresetForState(state));
   }
 
   function fitViewAll() {
-    frameSceneToObject(camera, controls, lightRig, systemRoot);
+    resetCameraTransform();
+    frameSceneToObject(camera, controls, lightRig, systemRoot, syncControlsUp);
   }
 
   function setViewPreset(state, preset = "arrayOblique") {
     if (!currentSceneSummary) return;
+    resetCameraTransform();
 
     const bounds = systemBounds(systemRoot);
     if (!bounds) {
-      setDefaultView(state);
+      frameSceneToObject(camera, controls, lightRig, systemRoot, syncControlsUp);
       return;
     }
 
@@ -418,11 +444,13 @@ export function createSceneApp({ canvas }) {
         currentSceneSummary.layout.crossAxisFootprint * 2.25,
         (cropRow.interRowGap || cropRow.width || currentSceneSummary.layout.crossAxisFootprint) * 1.35,
       );
-      const direction = axes.along.clone()
-        .transformDirection(systemRoot.matrixWorld)
-        .multiplyScalar(0.84)
-        .add(new THREE.Vector3(0, 0.54, 0))
-        .normalize();
+      const alongWorld = axes.along.clone().transformDirection(systemRoot.matrixWorld);
+      const direction = usesEastFacingRowView(state)
+        ? eastFacingRowDirection(alongWorld)
+        : alongWorld.clone()
+          .multiplyScalar(-0.84)
+          .add(new THREE.Vector3(0, 0.54, 0))
+          .normalize();
       frameSceneToPoints(camera, controls, lightRig, worldRectPoints(systemRoot, {
         center: new THREE.Vector3(cropRow.centerX, 0, cropRow.centerZ),
         alongAxis: axes.along,
@@ -430,7 +458,7 @@ export function createSceneApp({ canvas }) {
         alongLength,
         crossLength,
         topY,
-      }), direction);
+      }), direction, undefined, syncControlsUp);
       updateCameraClipping(camera, controls, Math.max(alongLength, crossLength, topY * 1.6));
       return;
     }
@@ -453,7 +481,7 @@ export function createSceneApp({ canvas }) {
         alongLength,
         crossLength,
         topY,
-      }), new THREE.Vector3(0, 1, 0));
+      }), new THREE.Vector3(0, 1, 0), TOP_DOWN_NORTH_UP, syncControlsUp);
       updateCameraClipping(camera, controls, Math.max(alongLength, crossLength, topY * 1.6));
       return;
     }
@@ -475,6 +503,10 @@ export function createSceneApp({ canvas }) {
       lightRig,
       arrayPoints,
       preset === "arrayNadir" ? new THREE.Vector3(0, 1, 0) : defaultObliqueDirection(state),
+      preset === "arrayNadir"
+        ? TOP_DOWN_NORTH_UP
+        : undefined,
+      syncControlsUp,
     );
     updateCameraClipping(camera, controls, Math.max(arrayWidth, arrayDepth, topY * 2));
   }

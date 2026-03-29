@@ -11,9 +11,11 @@ function smoothStep(min, max, value) {
 export function createLightRig(scene) {
   const hemi = new THREE.HemisphereLight(0xfdf8ef, 0x7b9070, 0.72);
   hemi.position.set(0, 140, 0);
+  hemi.name = "scene-hemi-light";
   scene.add(hemi);
 
   const sun = new THREE.DirectionalLight(0xfffaf0, 1.2);
+  sun.name = "scene-sun";
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.bias = -0.00012;
@@ -21,6 +23,7 @@ export function createLightRig(scene) {
   sun.shadow.camera.near = 1;
   sun.shadow.camera.far = 800;
   scene.add(sun);
+  sun.target.name = "scene-sun-target";
   scene.add(sun.target);
 
   return { hemi, sun };
@@ -31,8 +34,12 @@ export function updateSun(lightRig, state) {
   const azimuth = degToRad(state.sunAz);
   const elevation = degToRad(elevationDeg);
   const radius = 260;
+  const eastWestScale = state?.previewMirrorEastWest ? -1 : 1;
 
-  const x = radius * Math.cos(elevation) * Math.sin(azimuth);
+  // The public preview can opt into an east/west display compensation so the
+  // rendered sun path matches the intended cardinal reading without touching
+  // export geometry or the Radiance modeling pipeline.
+  const x = eastWestScale * radius * Math.cos(elevation) * Math.sin(azimuth);
   const y = radius * Math.sin(elevation);
   const z = radius * Math.cos(elevation) * Math.cos(azimuth);
 
