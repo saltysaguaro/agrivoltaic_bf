@@ -13,6 +13,7 @@ const SITE_PRESETS = [
   {
     id: "golden-co",
     label: "Golden, Colorado",
+    address: "Golden, Colorado, United States",
     fullAddress: "Golden, Colorado, United States",
     latitude: 39.7555,
     longitude: -105.2211,
@@ -26,6 +27,7 @@ const SITE_PRESETS = [
   {
     id: "tucson-az",
     label: "Tucson, Arizona",
+    address: "Tucson, Arizona, United States",
     fullAddress: "Tucson, Arizona, United States",
     latitude: 32.2226,
     longitude: -110.9747,
@@ -39,6 +41,7 @@ const SITE_PRESETS = [
   {
     id: "fresno-ca",
     label: "Fresno, California",
+    address: "Fresno, California, United States",
     fullAddress: "Fresno, California, United States",
     latitude: 36.7378,
     longitude: -119.7871,
@@ -54,6 +57,7 @@ const SITE_PRESETS = [
 function buildManualSite(address, latitude, longitude) {
   const label = address || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
   return {
+    address: label,
     label,
     fullAddress: label,
     latitude,
