@@ -22,6 +22,19 @@ function sceneIdFromProject(projectName) {
     || "agrivoltaic-study";
 }
 
+function normalizeAnnualSimulationSite(site) {
+  if (!site || typeof site !== "object") {
+    return site;
+  }
+
+  const address = String(site.address ?? site.fullAddress ?? site.label ?? "").trim();
+  return {
+    ...site,
+    address: address || String(site.label ?? ""),
+    source: site.source || "stored",
+  };
+}
+
 function nearestAnchor(position, layout) {
   let best = null;
   let bestDistance = Number.POSITIVE_INFINITY;
@@ -342,7 +355,7 @@ export function buildAnnualSimulationPayload({
 
   return {
     projectName,
-    site,
+    site: normalizeAnnualSimulationSite(site),
     designState,
     serializedConfig,
     workingDirectory: projectRoot || undefined,
