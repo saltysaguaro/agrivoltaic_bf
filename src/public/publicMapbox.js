@@ -61,6 +61,7 @@ function normalizeFeature(feature) {
   return {
     id: String(feature.id ?? feature.place_name ?? `${longitude},${latitude}`),
     label: String(feature.place_name ?? feature.text ?? "Selected location"),
+    address: String(feature.place_name ?? feature.text ?? "Selected location"),
     fullAddress: String(feature.place_name ?? feature.text ?? "Selected location"),
     latitude,
     longitude,
@@ -147,8 +148,10 @@ function renderSuggestions(container, suggestions, onSelect) {
 }
 
 export function normalizeConfiguredSite(site) {
+  const normalizedAddress = String(site?.address ?? site?.fullAddress ?? site?.label ?? "Golden, Colorado");
   return {
     label: String(site?.label ?? "Golden, Colorado"),
+    address: normalizedAddress,
     fullAddress: String(site?.fullAddress ?? site?.label ?? "Golden, Colorado"),
     latitude: Number(site?.latitude ?? 39.7555),
     longitude: Number(site?.longitude ?? -105.2211),
