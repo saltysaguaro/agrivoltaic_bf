@@ -42,3 +42,21 @@ test("session store persists site and design state locally", () => {
   assert.equal(restored.designState.dcSizeKw, 250);
   assert.equal(restored.lastJobId, "job-42");
 });
+
+test("session store normalizes legacy site records without an address", () => {
+  const storage = createMemoryStorage();
+  storage.setItem("agrivoltaic-platform-session-v1", JSON.stringify({
+    site: {
+      label: "Tucson, Arizona",
+      fullAddress: "Tucson, Arizona, United States",
+      latitude: 32.2226,
+      longitude: -110.9747,
+      timezone: "America/Phoenix",
+    },
+  }));
+
+  const restored = createSessionStore(storage).load();
+
+  assert.equal(restored.site.address, "Tucson, Arizona, United States");
+  assert.equal(restored.site.source, "stored");
+});

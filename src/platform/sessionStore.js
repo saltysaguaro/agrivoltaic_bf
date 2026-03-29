@@ -10,13 +10,40 @@ const DEFAULT_SESSION = {
   jobs: {},
 };
 
+function normalizeSessionSite(site) {
+  if (!site || typeof site !== "object") return null;
+  const address = String(site.address ?? site.fullAddress ?? site.label ?? "").trim();
+  return {
+    ...site,
+    address: address || String(site.label ?? ""),
+    source: site.source || "stored",
+  };
+}
+
+function normalizeSessionJob(job) {
+  if (!job || typeof job !== "object") return job;
+  if (!Object.prototype.hasOwnProperty.call(job, "site")) return job;
+  return {
+    ...job,
+    site: normalizeSessionSite(job.site),
+  };
+}
+
+function normalizeSession(session) {
+  return {
+    ...DEFAULT_SESSION,
+    ...session,
+    site: normalizeSessionSite(session?.site),
+    jobs: Object.fromEntries(
+      Object.entries(session?.jobs || {}).map(([jobId, job]) => [jobId, normalizeSessionJob(job)])
+    ),
+  };
+}
+
 function safeParse(raw) {
   if (!raw) return { ...DEFAULT_SESSION };
   try {
-    return {
-      ...DEFAULT_SESSION,
-      ...JSON.parse(raw),
-    };
+    return normalizeSession(JSON.parse(raw));
   } catch {
     return { ...DEFAULT_SESSION };
   }
@@ -28,8 +55,9 @@ export function createSessionStore(storage = window.localStorage) {
   }
 
   function save(next) {
-    storage.setItem(STORAGE_KEY, JSON.stringify(next));
-    return next;
+    const normalized = normalizeSession(next);
+    storage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    return normalized;
   }
 
   function patch(update) {
